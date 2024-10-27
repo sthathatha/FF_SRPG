@@ -8,6 +8,15 @@ using UnityEngine.UI;
 
 public class Global
 {
+    #region 定数
+
+    /// <summary>項目ごとの区切り</summary>
+    public const string SEP_GAMEDATA_ITEM = "&";
+    /// <summary>タイトルと内容の区切り</summary>
+    public const string SEP_GAMEDATA_TITLE = "=";
+
+    #endregion
+
     #region インスタンス取得
     private static SaveData _saveData = null;
     /// <summary>
@@ -204,9 +213,9 @@ public class Global
         /// <returns></returns>
         private string ToSaveString(Dictionary<string, string> data)
         {
-            var strList = data.Select((pair, idx) => pair.Key + ":" + pair.Value);
+            var strList = data.Select((pair, idx) => pair.Key + SEP_GAMEDATA_TITLE + pair.Value);
 
-            return string.Join(',', strList);
+            return string.Join(SEP_GAMEDATA_ITEM, strList);
         }
 
         /// <summary>
@@ -218,9 +227,9 @@ public class Global
             gameData.Clear();
             if (string.IsNullOrEmpty(data)) return;
 
-            foreach (var str in data.Split(','))
+            foreach (var str in data.Split(SEP_GAMEDATA_ITEM))
             {
-                var pair = str.Split(':');
+                var pair = str.Split(SEP_GAMEDATA_TITLE);
                 gameData[pair[0]] = pair[1];
             }
         }
@@ -233,7 +242,7 @@ public class Global
     {
         public int dummy;
 
-
+        public bool isLoadGame;
 
         /// <summary>
         /// コンストラクタ
@@ -241,6 +250,7 @@ public class Global
         public TemporaryData()
         {
             dummy = 0;
+            isLoadGame = false;
         }
     }
 }

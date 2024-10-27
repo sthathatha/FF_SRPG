@@ -61,6 +61,27 @@ public class Constant
     }
 
     /// <summary>
+    /// ƒNƒ‰ƒXID
+    /// </summary>
+    public enum ClassID
+    {
+        Base = 0,
+        A,
+        B,
+        A2,
+        AB,
+        B2,
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum SkillID
+    {
+
+    }
+
+    /// <summary>
     /// “GƒLƒƒƒ‰ID
     /// </summary>
     public enum EnemyID

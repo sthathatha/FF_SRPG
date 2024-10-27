@@ -39,17 +39,23 @@ public class FieldSystem : MonoBehaviour
 
     #endregion
 
-    #region フィールド
+    #region フィールド内容
 
     /// <summary>縦線リスト</summary>
     private List<Transform> colLines = new List<Transform>();
 
+    /// <summary>タイル表示リスト</summary>
     private List<SpriteRenderer> tiles = new List<SpriteRenderer>();
 
     /// <summary>プレイヤーリスト</summary>
     private List<PlayerCharacter> players = new List<PlayerCharacter>();
     /// <summary>敵リスト</summary>
     private List<EnemyCharacter> enemies = new List<EnemyCharacter>();
+
+    /// <summary>戦闘回数</summary>
+    private int Prm_BattleCount = 0;
+    /// <summary>戦闘内のターン数</summary>
+    private int Prm_BattleTurn = 0;
 
     #endregion
 
@@ -275,20 +281,104 @@ public class FieldSystem : MonoBehaviour
     /// </summary>
     public void InitField()
     {
-        //todo:セーブデータから作成
+        if (Global.GetTemporaryData().isLoadGame)
+        {
+            //todo:セーブデータから作成
 
-        var p = Instantiate(player_dummy);
-        p.gameObject.SetActive(true);
-        p.transform.SetParent(Character_parent, false);
-        p.SetLocation(new Vector2Int(10, 2));
-        players.Add(p);
+        }
+        else
+        {
+            Prm_BattleCount = 1;
+            Prm_BattleTurn = 0;
 
-        var e = Instantiate(enemy_dummy);
-        e.gameObject.SetActive(true);
-        e.transform.SetParent(Character_parent, false);
-        //e.SetLocation(new Vector2Int(2, 5));
-        e.SetLocation(new Vector2Int(8, 2));
-        enemies.Add(e);
+            // 6人初期化
+            GameParameter.Prm_Drows.Init(Constant.PlayerID.Drows);
+            GameParameter.Prm_Eraps.Init(Constant.PlayerID.Eraps);
+            GameParameter.Prm_Exa.Init(Constant.PlayerID.Exa);
+            GameParameter.Prm_Worra.Init(Constant.PlayerID.Worra);
+            GameParameter.Prm_Koob.Init(Constant.PlayerID.Koob);
+            GameParameter.Prm_You.Init(Constant.PlayerID.You);
+
+            // ドロシー
+            var p = Instantiate(player_dummy, Character_parent, false);
+            p.gameObject.SetActive(true);
+            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 1));
+            p.SetCharacter(Constant.PlayerID.Drows);
+            players.Add(p);
+            // エラ
+            p = Instantiate(player_dummy, Character_parent, false);
+            p.gameObject.SetActive(true);
+            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 2));
+            p.SetCharacter(Constant.PlayerID.Eraps);
+            players.Add(p);
+            // エグザ
+            p = Instantiate(player_dummy, Character_parent, false);
+            p.gameObject.SetActive(true);
+            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 3));
+            p.SetCharacter(Constant.PlayerID.Exa);
+            players.Add(p);
+            // ウーラ
+            p = Instantiate(player_dummy, Character_parent, false);
+            p.gameObject.SetActive(true);
+            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 4));
+            p.SetCharacter(Constant.PlayerID.Worra);
+            players.Add(p);
+            // クー
+            p = Instantiate(player_dummy, Character_parent, false);
+            p.gameObject.SetActive(true);
+            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 5));
+            p.SetCharacter(Constant.PlayerID.Koob);
+            players.Add(p);
+            // 悠
+            p = Instantiate(player_dummy, Character_parent, false);
+            p.gameObject.SetActive(true);
+            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 6));
+            p.SetCharacter(Constant.PlayerID.You);
+            players.Add(p);
+
+            CreateRandomEnemy();
+        }
+    }
+
+    /// <summary>
+    /// 敵をランダム生成
+    /// </summary>
+    private void CreateRandomEnemy()
+    {
+        //todo:階層によってレベル
+        var lv = Prm_BattleCount + 4;
+
+        // 4～6体の下級敵を生成
+        var weakCnt = Util.RandomInt(4, 6);
+        for (var i = 0; i < weakCnt; i++)
+        {
+            //todo:雑魚敵IDを選択
+            var eid = (Constant.EnemyID)Util.RandomInt(0, 0);
+
+            var e = Instantiate(enemy_dummy, Character_parent, false);
+            e.gameObject.SetActive(true);
+            e.SetLocation(new Vector2Int(Util.RandomInt(1, 5), i));
+            e.SetCharacter(eid);
+            e.InitParameter(lv);
+            enemies.Add(e);
+        }
+
+        // 強敵出現
+        if (Prm_BattleCount % 10 == 0)
+        {
+            // 強敵のLv
+            var strongLv = lv >= 100 ? Mathf.FloorToInt(lv * 1.1f) : lv + 10;
+
+            //todo:強敵IDを選択
+            var eid = (Constant.EnemyID)Util.RandomInt(0, 0);
+
+            var e = Instantiate(enemy_dummy, Character_parent, false);
+            e.gameObject.SetActive(true);
+            e.SetLocation(new Vector2Int(1, ROW_COUNT - 1));
+            e.SetCharacter(eid);
+            e.InitParameter(strongLv);
+            enemies.Add(e);
+        }
     }
 
     /// <summary>
@@ -329,8 +419,8 @@ public class FieldSystem : MonoBehaviour
         beforeList.Add(tmpHist);
         checkedList.Add(chr.GetLocation());
 
-        //
-        var range = 4; //chr.
+        // 移動歩数で取得
+        var range = chr.param.Move;
         ret.AddRange(GetMovableLocations(chr, checkedList, beforeList, range));
 
         return ret;
@@ -382,6 +472,12 @@ public class FieldSystem : MonoBehaviour
         return ret;
     }
 
+    /// <summary>
+    /// 進入可能か判定
+    /// </summary>
+    /// <param name="chr"></param>
+    /// <param name="cell"></param>
+    /// <returns></returns>
     private bool CanWalkCell(CharacterBase chr, Vector2Int cell)
     {
         if (cell.x < 0 || cell.x >= COL_COUNT || cell.y < 0 || cell.y >= ROW_COUNT) return false;
@@ -393,6 +489,9 @@ public class FieldSystem : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// 移動履歴クラス
+    /// </summary>
     public class MoveHistory
     {
         public List<Vector2Int> history;

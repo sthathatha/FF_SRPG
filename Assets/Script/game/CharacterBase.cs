@@ -19,10 +19,9 @@ public class CharacterBase : MonoBehaviour
 
     #region •Ï”
 
-    private Vector2Int location;
+    protected Vector2Int location;
 
-    public int stat_hp { get; private set; }
-    public int stat_atk { get; private set; }
+    public GameParameter.FieldCharacterParameter param { get; protected set; } = new();
 
     #endregion
 

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine;
 
@@ -62,6 +63,20 @@ public class Util
     public static float RandomFloat(float min, float max)
     {
         return Random.Range(min, max);
+    }
+
+    /// <summary>
+    /// ランダム小数　サインカーブで中央付近が出やすい
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <returns></returns>
+    public static float RandomFloatSin(float min, float max)
+    {
+        var rad = RandomFloat(-Mathf.PI / 2f, Mathf.PI * 1.5f);
+        var rate = (Mathf.Sin(rad) + 1f) / 2f; // 0～1
+
+        return min + (max - min) * rate;
     }
 
     /// <summary>

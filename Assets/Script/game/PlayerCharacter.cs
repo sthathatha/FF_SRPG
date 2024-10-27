@@ -25,6 +25,39 @@ public class PlayerCharacter : CharacterBase
     /// <returns></returns>
     public override bool IsPlayer() { return true; }
 
+    /// <summary>
+    /// 初期パラメータ読み込み
+    /// </summary>
+    public void InitParameter()
+    {
+        param.InitPlayer(playerID);
+
+        UpdateClassIcon();
+    }
+
+    /// <summary>
+    /// クラスチェンジ表示アイコンの更新
+    /// </summary>
+    public void UpdateClassIcon()
+    {
+        var chrData = GameParameter.Prm_Get(playerID);
+        if (chrData.ClassID == Constant.ClassID.Base)
+        {
+            classIcon1.SetActive(false);
+            classIcon2.SetActive(false);
+        }
+        else if (chrData.ClassID == Constant.ClassID.A || chrData.ClassID == Constant.ClassID.B)
+        {
+            classIcon1.SetActive(true);
+            classIcon2.SetActive(false);
+        }
+        else
+        {
+            classIcon1.SetActive(true);
+            classIcon2.SetActive(true);
+        }
+    }
+
     #endregion
 
     #region モデル
@@ -47,6 +80,8 @@ public class PlayerCharacter : CharacterBase
             Constant.PlayerID.Koob => resources.anim_koob_base,
             _ => resources.anim_you_base,
         };
+
+        InitParameter();
     }
 
     #endregion

@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 /// <summary>
 /// フィールド管理
@@ -36,6 +37,8 @@ public class FieldSystem : MonoBehaviour
     public Transform Line_parent;
     public Transform Character_parent;
     public Transform Tile_parent;
+
+    public Button btn_TurnEnd;
 
     #endregion
 
@@ -150,7 +153,7 @@ public class FieldSystem : MonoBehaviour
         if (loc.x < 0 || loc.y < 0) InputResult = InputResultEnum.OutCell;
         else InputResult = InputResultEnum.Cell;
 
-        InputPos = loc;
+        InputLoc = loc;
         InputLong = false;
         waitingInput = false;
     }
@@ -189,12 +192,16 @@ public class FieldSystem : MonoBehaviour
     public InputResultEnum InputResult { get; private set; } = InputResultEnum.OutCell;
 
     private bool waitingInput = false;
-    public Vector2Int InputPos { get; set; }
+    private bool inputEnableTurnEnd = false;
+    public Vector2Int InputLoc { get; set; }
     public bool InputLong { get; set; }
-    public IEnumerator WaitInput()
+    public IEnumerator WaitInput(bool enableTurnEnd = false)
     {
         waitingInput = true;
+        inputEnableTurnEnd = enableTurnEnd;
+        btn_TurnEnd.interactable = enableTurnEnd;
         yield return new WaitWhile(() => waitingInput);
+        btn_TurnEnd.interactable = false;
     }
 
     /// <summary>
@@ -202,15 +209,8 @@ public class FieldSystem : MonoBehaviour
     /// </summary>
     public void TurnEndClick()
     {
-
-    }
-
-    /// <summary>
-    /// オプションボタンクリック
-    /// </summary>
-    public void OptionClick()
-    {
-
+        InputResult = InputResultEnum.TurnEnd;
+        waitingInput = false;
     }
 
     #endregion
@@ -310,6 +310,39 @@ public class FieldSystem : MonoBehaviour
 
             tiles.Add(tile);
         }
+    }
+
+    #endregion
+
+    #region キャラ行動管理
+
+    /// <summary>
+    /// 全キャラ行動フラグリセット
+    /// </summary>
+    public void ResetAllActable()
+    {
+        foreach (var pc in players)
+        {
+            pc.SetActable(true);
+        }
+        foreach (var en in enemies)
+        {
+            en.SetActable(true);
+        }
+    }
+
+    /// <summary>
+    /// 行動可能キャラリスト取得
+    /// </summary>
+    /// <param name="player"></param>
+    /// <returns></returns>
+    public List<CharacterBase> GetActableChara(bool player)
+    {
+        var ret = new List<CharacterBase>();
+        if (player) ret.AddRange(players.Where(p => p.turnActable));
+        else ret.AddRange(enemies.Where(e => e.turnActable));
+
+        return ret;
     }
 
     #endregion

@@ -719,6 +719,7 @@ MonoBehaviour:
   Line_parent: {fileID: 341914050}
   Character_parent: {fileID: 80105201}
   Tile_parent: {fileID: 176574158}
+  btn_TurnEnd: {fileID: 1521829537}
 --- !u!61 &683466493
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1789,7 +1790,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 1
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_TargetDisplay: 0
 --- !u!1 &1521829535
 GameObject:
@@ -1869,11 +1870,23 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1521829538}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 683466492}
+        m_TargetAssemblyTypeName: FieldSystem, Assembly-CSharp
+        m_MethodName: TurnEndClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1521829538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1994,7 +2007,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1579381184}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1785578976}
+        m_TargetAssemblyTypeName: GameSceneScript, Assembly-CSharp
+        m_MethodName: OptionClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1579381184
 MonoBehaviour:
   m_ObjectHideFlags: 0

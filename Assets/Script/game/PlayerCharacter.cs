@@ -66,7 +66,7 @@ public class PlayerCharacter : CharacterBase
 
     #endregion
 
-    #region モデル
+    #region キャラクター設定
 
     /// <summary>
     /// キャラセット
@@ -88,6 +88,29 @@ public class PlayerCharacter : CharacterBase
         };
 
         InitParameter();
+    }
+
+    #endregion
+
+    #region 他
+
+    /// <summary>
+    /// アニメーション再生
+    /// </summary>
+    /// <param name="dir"></param>
+    public override void PlayAnim(Constant.Direction dir)
+    {
+        anim.Play(dir switch
+        {
+            Constant.Direction.Up => "up",
+            Constant.Direction.Down => "down",
+            Constant.Direction.Right => "left",
+            Constant.Direction.Left => "left",
+            _ => "idle",
+        });
+
+        // 右アニメは左右反転
+        anim.GetComponent<SpriteRenderer>().flipX = dir == Constant.Direction.Right;
     }
 
     #endregion

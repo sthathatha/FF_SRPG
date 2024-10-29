@@ -57,9 +57,19 @@ public class GameSceneScript : MainScriptBase
         while (true)
         {
             yield return PlayerTurn();
+            field.ResetAllActable();
 
             yield return EnemyTurn();
+            field.ResetAllActable();
         }
+    }
+
+    /// <summary>
+    /// オプションボタンクリック
+    /// </summary>
+    public void OptionClick()
+    {
+
     }
 
     #region プレイヤーターン
@@ -79,9 +89,14 @@ public class GameSceneScript : MainScriptBase
         while (true)
         {
             // クリック待ち
-            yield return field.WaitInput();
+            yield return field.WaitInput(true);
 
-            var chr = field.GetCellCharacter(field.InputPos);
+            if (field.InputResult == FieldSystem.InputResultEnum.TurnEnd)
+            {
+                break;
+            }
+
+            var chr = field.GetCellCharacter(field.InputLoc);
             if (chr == null)
             {
                 // キャラの居ない場所をクリックの場合
@@ -97,8 +112,9 @@ public class GameSceneScript : MainScriptBase
                 field.ShowTile(moveList.Select(h => h.current).ToList(), COLOR_TILE_MOVE);
                 continue;
             }
-            else if (chr.IsPlayer())
+            else if (chr.IsPlayer() && chr.turnActable)
             {
+                var baseLoc = chr.GetLocation();
                 // プレイヤーキャラをクリック
                 var pc = chr as PlayerCharacter;
                 var moveList = field.GetMovableLocations(pc);
@@ -109,44 +125,61 @@ public class GameSceneScript : MainScriptBase
 
                 // 移動先をクリック
                 yield return field.WaitInput();
-
-                var moveCellChr = field.GetCellCharacter(field.InputPos);
+                var moveCellChr = field.GetCellCharacter(field.InputLoc);
                 // 移動不可をクリックした場合戻る
-                if (moveCellChr != null || !moveListCur.Any(m => m == field.InputPos))
+                if (moveCellChr != null && field.InputLoc != baseLoc ||
+                    !moveListCur.Any(m => m == field.InputLoc))
                 {
                     field.ClearTiles();
                     continue;
                 }
+                var moveTargetHistory = moveList.Find(h => h.current == field.InputLoc);
 
                 // 移動する
-                //todo:
-                pc.SetLocation(field.InputPos);
-                // コマンド表示
-                yield return command.ShowCoroutine(pc);
-                field.ClearTiles();
-                if (command.Result == CommandUI.CommandResult.Cancel)
-                {
-                    // キャンセル
-                    continue;
-                }
-                else if (command.Result == CommandUI.CommandResult.Wait)
-                {
-                    // 待機
-                    //todo:
-                    continue;
-                }
-                else if (command.Result == CommandUI.CommandResult.Escape)
-                {
-                    // 撤退
-                    continue;
-                }
-                else if (command.Result == CommandUI.CommandResult.ClassChange)
-                {
-                    // クラスチェンジ
-                    continue;
-                }
+                yield return pc.Walk(moveTargetHistory);
+                pc.SetLocation(field.InputLoc);
 
-                // 行動
+                // コマンド表示
+                var commandCancel = 0; // 0:行動完了　1:キャンセル
+                while (true)
+                {
+                    yield return command.ShowCoroutine(pc);
+                    field.ClearTiles();
+                    if (command.Result == CommandUI.CommandResult.Cancel)
+                    {
+                        // キャンセル
+                        pc.PlayAnim(Constant.Direction.None);
+                        pc.SetLocation(baseLoc);
+                        commandCancel = 1;
+                        break;
+                    }
+                    else if (command.Result == CommandUI.CommandResult.Wait)
+                    {
+                        // 待機
+                        pc.PlayAnim(Constant.Direction.None);
+                        pc.SetActable(false);
+                        break;
+                    }
+                    else if (command.Result == CommandUI.CommandResult.Escape)
+                    {
+                        // 撤退
+                    }
+                    else if (command.Result == CommandUI.CommandResult.ClassChange)
+                    {
+                        // クラスチェンジ
+                    }
+
+                    // 行動
+                }
+                // キャンセルしたら戻る
+                if (commandCancel == 1) continue;
+
+
+                // 全員行動終了してたらターン終了
+                if (field.GetActableChara(true).Count == 0)
+                {
+                    break;
+                }
             }
         }
     }

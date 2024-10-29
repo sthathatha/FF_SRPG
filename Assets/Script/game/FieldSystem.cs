@@ -147,6 +147,9 @@ public class FieldSystem : MonoBehaviour
 
         var pev = ev as PointerEventData;
         var loc = GetLocationFromPos(pev.position);
+        if (loc.x < 0 || loc.y < 0) InputResult = InputResultEnum.OutCell;
+        else InputResult = InputResultEnum.Cell;
+
         InputPos = loc;
         InputLong = false;
         waitingInput = false;
@@ -158,11 +161,32 @@ public class FieldSystem : MonoBehaviour
     /// <param name="pos"></param>
     private void LongClick(Vector2 pos)
     {
+        if (!waitingInput) return;
+
         var loc = GetLocationFromPos(pos);
-        InputPos = loc;
-        InputLong = true;
-        waitingInput = false;
+        //InputPos = loc;
+        //InputLong = true;
+        //waitingInput = false;
+
+        var locChr = GetCellCharacter(loc);
+        if (locChr != null)
+        {
+            var statusWindow = ManagerSceneScript.GetInstance().statusScreen;
+            statusWindow.DispParameter(locChr);
+            statusWindow.Show();
+        }
     }
+
+    /// <summary>
+    ///  入力結果
+    /// </summary>
+    public enum InputResultEnum
+    {
+        OutCell = 0,
+        Cell,
+        TurnEnd,
+    }
+    public InputResultEnum InputResult { get; private set; } = InputResultEnum.OutCell;
 
     private bool waitingInput = false;
     public Vector2Int InputPos { get; set; }
@@ -171,6 +195,22 @@ public class FieldSystem : MonoBehaviour
     {
         waitingInput = true;
         yield return new WaitWhile(() => waitingInput);
+    }
+
+    /// <summary>
+    /// ターン終了ボタンをクリック
+    /// </summary>
+    public void TurnEndClick()
+    {
+
+    }
+
+    /// <summary>
+    /// オプションボタンクリック
+    /// </summary>
+    public void OptionClick()
+    {
+
     }
 
     #endregion

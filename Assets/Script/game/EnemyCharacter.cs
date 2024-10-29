@@ -13,7 +13,7 @@ public class EnemyCharacter : CharacterBase
 
     #region •Ï”
 
-    private Constant.EnemyID enemyID;
+    public Constant.EnemyID enemyID { get; private set; }
 
     #endregion
 
@@ -28,7 +28,11 @@ public class EnemyCharacter : CharacterBase
         param.InitEnemy(enemyID, lv);
     }
 
-
+    /// <summary>
+    /// –¼‘Oæ“¾
+    /// </summary>
+    /// <returns></returns>
+    public string GetEnemyName() { return GameDatabase.Name_Enemies[(int)enemyID]; }
 
     #endregion
 

@@ -15,7 +15,7 @@ public class PlayerCharacter : CharacterBase
 
     #region 変数
 
-    private Constant.PlayerID playerID;
+    public Constant.PlayerID playerID { get; private set; }
 
     #endregion
 
@@ -36,11 +36,17 @@ public class PlayerCharacter : CharacterBase
     }
 
     /// <summary>
+    /// セーブパラメーター
+    /// </summary>
+    /// <returns></returns>
+    public GameParameter.PlayerSaveParameter GetSaveParameter() { return GameParameter.Prm_Get(playerID); }
+
+    /// <summary>
     /// クラスチェンジ表示アイコンの更新
     /// </summary>
     public void UpdateClassIcon()
     {
-        var chrData = GameParameter.Prm_Get(playerID);
+        var chrData = GetSaveParameter();
         if (chrData.ClassID == Constant.ClassID.Base)
         {
             classIcon1.SetActive(false);

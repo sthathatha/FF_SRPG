@@ -42,6 +42,8 @@ public class GameParameter
     public class PlayerSaveParameter
     {
         public int Lv;
+        public int Exp;
+
         public int MaxHP;
         public int Atk;
         public int Mag;
@@ -74,6 +76,7 @@ public class GameParameter
             var lv1Param = GameDatabase.Prm_PlayerInit[(int)pid];
 
             Lv = 1;
+            Exp = 0;
             MaxHP = lv1Param.maxHp;
             Atk = lv1Param.atk;
             Mag = lv1Param.mag;
@@ -174,7 +177,7 @@ public class GameParameter
             var rand = new Func<int, int>(rate =>
             {
                 if (rate == 0) return 0;
-                return Mathf.FloorToInt(rate * growCnt * Util.RandomFloatSin(0.9f, 1.1f));
+                return Mathf.FloorToInt(rate * growCnt * Util.RandomFloatSin(0.9f, 1.1f) / 100f);
             });
 
             Lv = lv;

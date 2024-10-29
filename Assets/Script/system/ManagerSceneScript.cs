@@ -49,14 +49,27 @@ public class ManagerSceneScript : MonoBehaviour
 
     #region メンバー
 
+    #region UI
+
     /// <summary>ダイアログウィンドウ</summary>
     public GameObject dialogWindow = null;
 
     /// <summary>オプションウィンドウ</summary>
     public GameObject optionWindow = null;
 
+    /// <summary>ステータス詳細画面</summary>
+    public StatusScreen statusScreen = null;
+
+    /// <summary>ターン表示</summary>
+    public TurnDisplay turnDisplay = null;
+
+    /// <summary>コマンド選択</summary>
+    public CommandUI commandUI = null;
+
     /// <summary>フェーダ</summary>
     public CanvasGroup fader = null;
+
+    #endregion
 
     /// <summary>基本シーン</summary>
     public void SetMainScript(MainScriptBase script) { mainScript = script; }
@@ -71,6 +84,9 @@ public class ManagerSceneScript : MonoBehaviour
 
     /// <summary>カメラ</summary>
     public MainCamera mainCam = null;
+
+    /// <summary>汎用リソース</summary>
+    public GeneralResources generalResources = null;
 
     #endregion
 
@@ -95,13 +111,15 @@ public class ManagerSceneScript : MonoBehaviour
 
         //dialogWindow.SetActive(false);
         //optionWindow.SetActive(false);
+        statusScreen.Hide();
         fader.gameObject.SetActive(true);
         fader.alpha = 1f;
 
         if (!isDebugLoad)
         {
             //初期シーンロード
-            SceneManager.LoadSceneAsync("TitleScene", LoadSceneMode.Additive);
+            //SceneManager.LoadSceneAsync("TitleScene", LoadSceneMode.Additive);
+            SceneManager.LoadSceneAsync("GameScene", LoadSceneMode.Additive);
         }
         else
         {

@@ -203,6 +203,24 @@ public class GameDatabase
         "修羅",
     };
 
+    /// <summary>
+    /// クラス名配列取得
+    /// </summary>
+    /// <param name="pid"></param>
+    /// <returns></returns>
+    public static string[] Name_Classes_Get(Constant.PlayerID pid)
+    {
+        return pid switch
+        {
+            Constant.PlayerID.Drows => Name_Classes_Drows,
+            Constant.PlayerID.Eraps => Name_Classes_Eraps,
+            Constant.PlayerID.Exa => Name_Classes_Exa,
+            Constant.PlayerID.Worra => Name_Classes_Worra,
+            Constant.PlayerID.Koob => Name_Classes_Koob,
+            _ => Name_Classes_You,
+        };
+    }
+
     /// <summary>スキル名</summary>
     public static readonly string[] Name_Skills =
     {

@@ -121,6 +121,121 @@ public class GameDatabase
         return lst[(int)classID];
     }
 
+    #endregion
+
+    #region クラスごとの武器倍率
+
+    /// <summary>
+    /// 武器の倍率
+    /// </summary>
+    public struct WeaponRate
+    {
+        public int sword;
+        public int spear;
+        public int axe;
+        public int arrow;
+        public int book;
+        public int rod;
+        public WeaponRate(int _sword, int _spear, int _axe, int _arrow, int _book, int _rod)
+        {
+            sword = _sword; spear = _spear; axe = _axe; arrow = _arrow; book = _book; rod = _rod;
+        }
+
+        public int Get(ItemType it)
+        {
+            return it switch
+            {
+                ItemType.Sword => sword,
+                ItemType.Spear => spear,
+                ItemType.Axe => axe,
+                ItemType.Arrow => arrow,
+                ItemType.Book => book,
+                ItemType.Rod => rod,
+                _ => 100,
+            };
+        }
+    }
+
+    /// <summary>クラス毎武器倍率_ドロシー</summary>
+    public static readonly WeaponRate[] Prm_ClassWeaponRates_Drows = new WeaponRate[]
+    {
+        new (100, 30, 30, 10, 10, 10),
+        new (120, 30, 30, 10, 10, 10),
+        new (100, 50, 100, 30, 10, 10),
+        new (150, 80, 80, 10, 10, 10),
+        new (120, 120, 120, 50, 10, 10),
+        new (200, 0, 0, 0, 0, 0),
+    };
+    /// <summary>クラス毎武器倍率_エラ</summary>
+    public static readonly WeaponRate[] Prm_ClassWeaponRates_Eraps = new WeaponRate[]
+    {
+        new (20, 100, 20, 20, 10, 50),
+        new (50, 100, 50, 20, 10, 50),
+        new (20, 120, 20, 20, 10, 50),
+        new (100, 100, 100, 50, 10, 50),
+        new (100, 120, 50, 50, 10, 100),
+        new (50, 150, 50, 20, 10, 50),
+    };
+    /// <summary>クラス毎武器倍率_エグザ</summary>
+    public static readonly WeaponRate[] Prm_ClassWeaponRates_Exa = new WeaponRate[]
+    {
+        new (10, 50, 100, 10, 30, 30),
+        new (10, 50, 100, 10, 30, 30),
+        new (10, 50, 120, 10, 30, 30),
+        new (50, 100, 100, 50, 30, 50),
+        new (100, 50, 100, 10, 30, 30),
+        new (10, 50, 150, 10, 30, 30),
+    };
+    /// <summary>クラス毎武器倍率_ウーラ</summary>
+    public static readonly WeaponRate[] Prm_ClassWeaponRates_Worra = new WeaponRate[]
+    {
+        new (10, 10, 10, 100, 10, 50),
+        new (10, 10, 10, 120, 30, 50),
+        new (10, 10, 10, 100, 30, 100),
+        new (10, 10, 10, 150, 30, 50),
+        new (50, 10, 10, 120, 30, 100),
+        new (100, 10, 10, 100, 30, 100),
+    };
+    /// <summary>クラス毎武器倍率_クー</summary>
+    public static readonly WeaponRate[] Prm_ClassWeaponRates_Koob = new WeaponRate[]
+    {
+        new (10, 10, 10, 10, 100, 100),
+        new (10, 10, 10, 10, 130, 100),
+        new (10, 10, 10, 10, 100, 130),
+        new (10, 10, 10, 10, 150, 100),
+        new (10, 10, 10, 10, 130, 130),
+        new (10, 10, 10, 10, 100, 150),
+    };
+    /// <summary>クラス毎武器倍率_悠</summary>
+    public static readonly WeaponRate[] Prm_ClassWeaponRates_You = new WeaponRate[]
+    {
+        new (110, 10, 10, 10, 50, 50),
+        new (130, 10, 10, 10, 50, 50),
+        new (120, 10, 10, 10, 50, 50),
+        new (150, 10, 10, 10, 50, 50),
+        new (120, 120, 10, 10, 50, 50),
+        new (130, 10, 100, 10, 50, 50),
+    };
+
+    /// <summary>クラスチェンジ成長値取得</summary>
+    public static WeaponRate Prm_ClassWeaponRate_Get(Constant.PlayerID playerID, Constant.ClassID classID)
+    {
+        var lst = playerID switch
+        {
+            Constant.PlayerID.Drows => Prm_ClassWeaponRates_Drows,
+            Constant.PlayerID.Eraps => Prm_ClassWeaponRates_Eraps,
+            Constant.PlayerID.Exa => Prm_ClassWeaponRates_Exa,
+            Constant.PlayerID.Worra => Prm_ClassWeaponRates_Worra,
+            Constant.PlayerID.Koob => Prm_ClassWeaponRates_Koob,
+            _ => Prm_ClassWeaponRates_You,
+        };
+
+        return lst[(int)classID];
+    }
+
+    #endregion
+
+    #region 敵
     /// <summary>敵Lv1</summary>
     public static readonly ParameterData[] Prm_EnemyInit = new ParameterData[]
     {
@@ -232,6 +347,98 @@ public class GameDatabase
     {
         "グリーンスライム",
         "スケルトン",
+    };
+
+    #endregion
+
+    #region アイテムデータベース
+
+    /// <summary>
+    /// アイテム種別
+    /// </summary>
+    public enum ItemType
+    {
+        None = 0,
+        Sword,
+        Spear,
+        Axe,
+        Arrow,
+        Book,
+        Rod,
+        Item,
+    }
+
+    /// <summary>
+    /// アイテムパラメータ構造体
+    /// </summary>
+    public struct ItemData
+    {
+        public ItemType iType;
+        public string name;
+        public int maxUse;
+        public int atk;
+        public int hit;
+        public int rangeMin;
+        public int rangeMax;
+        public int critical;
+
+        public ItemData(ItemType it, string nm, int use, int a, int hi, int rMin, int rMax, int crt = 0)
+        {
+            iType = it; name = nm; maxUse = use;
+            atk = a; hit = hi; rangeMin = rMin; rangeMax = rMax; critical = crt;
+        }
+    }
+
+    /// <summary>アイテムID</summary>
+    public enum ItemID
+    {
+        FreeHand = 0,
+        Rod1,
+        Item1,
+        Sword1,
+        Spear1,
+        Axe1,
+        Arrow1,
+        Book1,
+        Sword2,
+        Spear2,
+        Axe2,
+        Arrow2,
+        Book2,
+        Sword3,
+        Spear3,
+        Axe3,
+        Arrow3,
+        Book3,
+    }
+
+    /// <summary>
+    /// アイテムデータ
+    /// </summary>
+    public static readonly ItemData[] ItemDataList = new ItemData[]
+    {
+        new(ItemType.None, "素手", -1, 0, 100, 1, 1),
+
+        new(ItemType.Rod, "リフの杖", 30, 10, 100, 1, 1),
+        new(ItemType.Item, "エリクサー", 3, 100, 100, 0, 0),
+
+        new(ItemType.Sword, "鉄の剣", 40, 5, 85, 1, 1),
+        new(ItemType.Spear, "鉄の槍", 40, 7, 70, 1, 1),
+        new(ItemType.Axe, "鉄の斧", 40, 8, 65, 1, 1),
+        new(ItemType.Arrow, "鉄の弓", 40, 6, 80, 2, 3),
+        new(ItemType.Book, "ファイアー", 40, 5, 95, 1, 2),
+
+        new(ItemType.Sword, "銀の剣", 20, 13, 75, 1, 1),
+        new(ItemType.Spear, "銀の槍", 20, 14, 65, 1, 1),
+        new(ItemType.Axe, "銀の斧", 20, 15, 55, 1, 1),
+        new(ItemType.Arrow, "銀の弓", 20, 13, 70, 2, 3),
+        new(ItemType.Book, "ブリザード", 15, 13, 80, 1, 2),
+
+        new(ItemType.Sword, "キルソード", 20, 9, 80, 1, 1, 30),
+        new(ItemType.Spear, "キラーランス", 20, 10, 75, 1, 1, 30),
+        new(ItemType.Axe, "キラーアクス", 20, 11, 65, 1, 1, 30),
+        new(ItemType.Arrow, "キラーボウ", 20, 9, 80, 2, 3, 30),
+        new(ItemType.Book, "キルグリム", 20, 8, 70, 1, 2, 30),
     };
 
     #endregion

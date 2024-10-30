@@ -66,6 +66,9 @@ public class ManagerSceneScript : MonoBehaviour
     /// <summary>コマンド選択</summary>
     public CommandUI commandUI = null;
 
+    /// <summary>アイテムリスト</summary>
+    public ItemListUI itemListUI = null;
+
     /// <summary>フェーダ</summary>
     public CanvasGroup fader = null;
 

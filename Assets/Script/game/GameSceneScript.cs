@@ -82,6 +82,7 @@ public class GameSceneScript : MainScriptBase
     {
         var manager = ManagerSceneScript.GetInstance();
         var command = manager.commandUI;
+        var itemui = manager.itemListUI;
 
         // ターン表示
         yield return manager.turnDisplay.DisplayTurnStart(true);
@@ -169,7 +170,25 @@ public class GameSceneScript : MainScriptBase
                         // クラスチェンジ
                     }
 
-                    // 行動
+                    // 行動アイテム選択UI
+                    yield return itemui.ShowCoroutine(pc);
+                    // キャンセルしたらコマンド
+                    if (itemui.Result == ItemListUI.ItemResult.Cancel) continue;
+
+                    // 選んだ選択肢
+                    var selItem = itemui.Result_SelectData;
+                    if (selItem.iType == GameDatabase.ItemType.Item)
+                    {
+                        // アイテム
+                    }
+                    else if (selItem.iType == GameDatabase.ItemType.Rod)
+                    {
+                        // 杖
+                    }
+                    else
+                    {
+                        // 他は武器
+                    }
                 }
                 // キャンセルしたら戻る
                 if (commandCancel == 1) continue;

@@ -51,4 +51,37 @@ public class GeneralResources : MonoBehaviour
     }
 
     #endregion
+
+    #region アイテムアイコン
+
+    public Sprite item_hand;
+    public Sprite item_sword;
+    public Sprite item_spear;
+    public Sprite item_axe;
+    public Sprite item_arrow;
+    public Sprite item_book;
+    public Sprite item_rod;
+    public Sprite item_item;
+
+    /// <summary>
+    /// アイテムアイコン
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public Sprite GetItemIcon(GameDatabase.ItemType type)
+    {
+        return type switch
+        {
+            GameDatabase.ItemType.Sword => item_sword,
+            GameDatabase.ItemType.Spear => item_spear,
+            GameDatabase.ItemType.Axe => item_axe,
+            GameDatabase.ItemType.Arrow => item_arrow,
+            GameDatabase.ItemType.Book => item_book,
+            GameDatabase.ItemType.Rod => item_rod,
+            GameDatabase.ItemType.Item => item_item,
+            _ => item_hand
+        };
+    }
+
+    #endregion
 }

@@ -409,6 +409,9 @@ public class FieldSystem : MonoBehaviour
             p.SetCharacter(Constant.PlayerID.You);
             players.Add(p);
 
+            // Š•i“™‰Šú‰»
+            GameParameter.otherData.Init();
+
             CreateRandomEnemy();
         }
     }

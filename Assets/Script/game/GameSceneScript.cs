@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ public class GameSceneScript : MainScriptBase
 
     private readonly Color COLOR_TILE_ATTACK = new Color(1f, 0.2f, 0.2f, 0.6f);
     private readonly Color COLOR_TILE_MOVE = new Color(0.2f, 0.5f, 1, 0.6f);
+    private readonly Color COLOR_TILE_HEAL = new Color(0.2f, 1f, 0.2f, 0.6f);
 
     #endregion
 
@@ -81,8 +83,6 @@ public class GameSceneScript : MainScriptBase
     private IEnumerator PlayerTurn()
     {
         var manager = ManagerSceneScript.GetInstance();
-        var command = manager.commandUI;
-        var itemui = manager.itemListUI;
 
         // ターン表示
         yield return manager.turnDisplay.DisplayTurnStart(true);
@@ -115,84 +115,11 @@ public class GameSceneScript : MainScriptBase
             }
             else if (chr.IsPlayer() && chr.turnActable)
             {
-                var baseLoc = chr.GetLocation();
                 // プレイヤーキャラをクリック
-                var pc = chr as PlayerCharacter;
-                var moveList = field.GetMovableLocations(pc);
-                var moveListCur = moveList.Select(h => h.current).ToList();
-                // 移動可能場所を表示
-                field.ClearTiles();
-                field.ShowTile(moveListCur, COLOR_TILE_MOVE);
-
-                // 移動先をクリック
-                yield return field.WaitInput();
-                var moveCellChr = field.GetCellCharacter(field.InputLoc);
-                // 移動不可をクリックした場合戻る
-                if (moveCellChr != null && field.InputLoc != baseLoc ||
-                    !moveListCur.Any(m => m == field.InputLoc))
-                {
-                    field.ClearTiles();
-                    continue;
-                }
-                var moveTargetHistory = moveList.Find(h => h.current == field.InputLoc);
-
-                // 移動する
-                yield return pc.Walk(moveTargetHistory);
-                pc.SetLocation(field.InputLoc);
-
-                // コマンド表示
-                var commandCancel = 0; // 0:行動完了　1:キャンセル
-                while (true)
-                {
-                    yield return command.ShowCoroutine(pc);
-                    field.ClearTiles();
-                    if (command.Result == CommandUI.CommandResult.Cancel)
-                    {
-                        // キャンセル
-                        pc.PlayAnim(Constant.Direction.None);
-                        pc.SetLocation(baseLoc);
-                        commandCancel = 1;
-                        break;
-                    }
-                    else if (command.Result == CommandUI.CommandResult.Wait)
-                    {
-                        // 待機
-                        pc.PlayAnim(Constant.Direction.None);
-                        pc.SetActable(false);
-                        break;
-                    }
-                    else if (command.Result == CommandUI.CommandResult.Escape)
-                    {
-                        // 撤退
-                    }
-                    else if (command.Result == CommandUI.CommandResult.ClassChange)
-                    {
-                        // クラスチェンジ
-                    }
-
-                    // 行動アイテム選択UI
-                    yield return itemui.ShowCoroutine(pc);
-                    // キャンセルしたらコマンド
-                    if (itemui.Result == ItemListUI.ItemResult.Cancel) continue;
-
-                    // 選んだ選択肢
-                    var selItem = itemui.Result_SelectData;
-                    if (selItem.iType == GameDatabase.ItemType.Item)
-                    {
-                        // アイテム
-                    }
-                    else if (selItem.iType == GameDatabase.ItemType.Rod)
-                    {
-                        // 杖
-                    }
-                    else
-                    {
-                        // 他は武器
-                    }
-                }
+                var moveResult = 0;
+                yield return PTurnPlayerChrMove(chr as PlayerCharacter, x => moveResult = x);
                 // キャンセルしたら戻る
-                if (commandCancel == 1) continue;
-
+                if (moveResult == 0) continue;
 
                 // 全員行動終了してたらターン終了
                 if (field.GetActableChara(true).Count == 0)
@@ -201,6 +128,190 @@ public class GameSceneScript : MainScriptBase
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// プレイヤキャラをクリックして行動
+    /// </summary>
+    /// <param name="pc"></param>
+    /// <param name="callback">戻り値受取用</param>
+    /// <returns></returns>
+    private IEnumerator PTurnPlayerChrMove(PlayerCharacter pc, Action<int> callback)
+    {
+        var baseLoc = pc.GetLocation();
+        var moveList = field.GetMovableLocations(pc);
+        var moveListCur = moveList.Select(h => h.current).ToList();
+        // 移動可能場所を表示
+        field.ClearTiles();
+        field.ShowTile(moveListCur, COLOR_TILE_MOVE);
+
+        // 移動先をクリック
+        yield return field.WaitInput();
+        var moveCellChr = field.GetCellCharacter(field.InputLoc);
+
+        // 移動不可をクリックした場合戻る
+        if (moveCellChr != null && field.InputLoc != baseLoc ||
+            !moveListCur.Any(m => m == field.InputLoc))
+        {
+            field.ClearTiles();
+            callback?.Invoke(0);
+            yield break;
+        }
+        var moveTargetHistory = moveList.Find(h => h.current == field.InputLoc);
+
+        // 移動する
+        yield return pc.Walk(moveTargetHistory);
+        pc.SetLocation(field.InputLoc);
+
+        // 移動後コマンド処理
+        var commandResult = 0;
+        yield return PTurnCommand(pc, x => commandResult = x);
+        if (commandResult == 0)
+        {
+            // キャンセルしたらbaseLocに戻る
+            pc.PlayAnim(Constant.Direction.None);
+            pc.SetLocation(baseLoc);
+        }
+
+        callback?.Invoke(commandResult);
+    }
+
+    /// <summary>
+    /// プレイヤーターン行動選択処理
+    /// </summary>
+    /// <param name="pc"></param>
+    /// <param name="callback">戻り値受取用　0:キャンセル　1:行動終了</param>
+    /// <returns></returns>
+    private IEnumerator PTurnCommand(PlayerCharacter pc, Action<int> callback)
+    {
+        var manager = ManagerSceneScript.GetInstance();
+        var command = manager.commandUI;
+
+        while (true)
+        {
+            // コマンド表示
+            yield return command.ShowCoroutine(pc);
+            field.ClearTiles();
+            if (command.Result == CommandUI.CommandResult.Cancel)
+            {
+                // キャンセル
+                callback?.Invoke(0);
+                yield break;
+            }
+            else if (command.Result == CommandUI.CommandResult.Wait)
+            {
+                // 待機
+                pc.PlayAnim(Constant.Direction.None);
+                pc.SetActable(false);
+                callback?.Invoke(1);
+                yield break;
+            }
+            else if (command.Result == CommandUI.CommandResult.Escape)
+            {
+                //todo: 撤退
+                pc.PlayAnim(Constant.Direction.None);
+                pc.SetActable(false);
+                pc.param.HP -= 3;
+                if (pc.param.HP < 0) pc.param.HP = 0;
+                pc.UpdateHP();
+                callback?.Invoke(1);
+                yield break;
+            }
+            else if (command.Result == CommandUI.CommandResult.ClassChange)
+            {
+                //todo: クラスチェンジ
+            }
+            else
+            {
+                // 行動アイテム選択
+                var actSelectResult = 0;
+                yield return PTurnActSelect(pc, x => actSelectResult = x);
+                if (actSelectResult != 0)
+                {
+                    callback?.Invoke(actSelectResult);
+                    yield break;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 行動をメニューから選択
+    /// </summary>
+    /// <param name="pc"></param>
+    /// <param name="callback"></param>
+    /// <returns></returns>
+    private IEnumerator PTurnActSelect(PlayerCharacter pc, Action<int> callback)
+    {
+        var manager = ManagerSceneScript.GetInstance();
+        var itemui = manager.itemListUI;
+
+        while (true)
+        {
+            // 行動アイテム選択UI
+            yield return itemui.ShowCoroutine(pc);
+            // キャンセル
+            if (itemui.Result == ItemListUI.ItemResult.Cancel)
+            {
+                callback?.Invoke(0);
+                yield break;
+            }
+
+            // 選んだ選択肢
+            var selItem = itemui.Result_SelectData;
+            var selAtkCells = field.GetRangeLocations(pc.GetLocation(), selItem.rangeMin, selItem.rangeMax);
+            if (selItem.iType == GameDatabase.ItemType.Item ||
+                selItem.iType == GameDatabase.ItemType.Rod)
+                field.ShowTile(selAtkCells, COLOR_TILE_HEAL);
+            else
+                field.ShowTile(selAtkCells, COLOR_TILE_ATTACK);
+            yield return field.WaitInput();
+            field.ClearTiles();
+            var selAtkChr = field.GetCellCharacter(field.InputLoc);
+            // 攻撃対象以外を選んだらキャンセル
+            if (selAtkChr == null) continue;
+
+            if (selItem.iType == GameDatabase.ItemType.Item ||
+                selItem.iType == GameDatabase.ItemType.Rod)
+            {
+                // アイテム・杖はキャラが仲間でなければキャンセル
+                if (!selAtkChr.IsPlayer()) continue;
+                yield return PTurnHealCoroutine(pc, selAtkChr as PlayerCharacter, itemui.Result_SelectIndex);
+            }
+            else
+            {
+                // 武器は敵でなければキャンセル
+                if (selAtkChr.IsPlayer()) continue;
+                yield return TurnBattleCoroutine(pc, selAtkChr, null);
+            }
+        }
+
+        callback?.Invoke(1);
+    }
+
+    /// <summary>
+    /// 回復コルーチン
+    /// </summary>
+    /// <param name="pc"></param>
+    /// <param name="target"></param>
+    /// <param name="itemIndex">使うアイテムの袋の場所</param>
+    /// <returns></returns>
+    private IEnumerator PTurnHealCoroutine(PlayerCharacter pc, PlayerCharacter target, int itemIndex)
+    {
+        yield return null;
+    }
+
+    /// <summary>
+    /// 戦闘コルーチン
+    /// </summary>
+    /// <param name="atkChr"></param>
+    /// <param name="defChr"></param>
+    /// <param name="callback"></param>
+    /// <returns></returns>
+    private IEnumerator TurnBattleCoroutine(CharacterBase atkChr, CharacterBase defChr, Action<int> callback)
+    {
+        yield return null;
+        callback?.Invoke(1);
     }
 
     #endregion

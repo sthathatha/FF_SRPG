@@ -476,6 +476,20 @@ public class FieldSystem : MonoBehaviour
         return null;
     }
 
+    #endregion
+
+    #region 位置検索
+
+    /// <summary>
+    /// フィールド範囲内判定
+    /// </summary>
+    /// <param name="loc"></param>
+    /// <returns></returns>
+    public bool IsInField(Vector2Int loc)
+    {
+        return loc.x >= 0 && loc.y >= 0 && loc.x < COL_COUNT && loc.y < ROW_COUNT;
+    }
+
     /// <summary>
     /// 移動可能場所をリストアップ
     /// </summary>
@@ -578,6 +592,34 @@ public class FieldSystem : MonoBehaviour
         }
 
         public Vector2Int current { get { return history.Last(); } }
+    }
+
+    /// <summary>
+    /// 汎用　距離マス取得
+    /// </summary>
+    /// <param name="center"></param>
+    /// <param name="rangeMin"></param>
+    /// <param name="rangeMax"></param>
+    /// <returns></returns>
+    public List<Vector2Int> GetRangeLocations(Vector2Int center, int rangeMin, int rangeMax)
+    {
+        var ret = new List<Vector2Int>();
+
+        for (var r = rangeMin; r <= rangeMax; ++r)
+        {
+            for (var y = r; y >= -r; --y)
+            {
+                var x = r - Math.Abs(y);
+                var l = center + new Vector2Int(x, y);
+                if (IsInField(l)) ret.Add(l);
+
+                if (x == 0) continue;
+                l.x = center.x - x;
+                if (IsInField(l)) ret.Add(l);
+            }
+        }
+
+        return ret;
     }
 
     #endregion

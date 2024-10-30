@@ -26,6 +26,8 @@ public class EnemyCharacter : CharacterBase
     public void InitParameter(int lv)
     {
         param.InitEnemy(enemyID, lv);
+
+        UpdateHP(true);
     }
 
     /// <summary>

@@ -15,6 +15,9 @@ public class CharacterBase : MonoBehaviour
     /// <summary>モデル</summary>
     public Animator anim;
 
+    /// <summary>HPゲージ</summary>
+    public HPGauge hpGauge;
+
     #endregion
 
     #region 変数
@@ -108,6 +111,18 @@ public class CharacterBase : MonoBehaviour
                 transform.localPosition = p.Get();
             }
         }
+    }
+
+    /// <summary>
+    /// HPゲージ更新
+    /// </summary>
+    /// <param name="immediate">true:即時更新　false:アニメーション</param>
+    public void UpdateHP(bool immediate = false)
+    {
+        if (immediate)
+            hpGauge.SetHP(param.HP, param.MaxHP);
+        else
+            hpGauge.AnimHP(param.HP, param.MaxHP);
     }
 
     #endregion

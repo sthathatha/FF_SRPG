@@ -32,6 +32,7 @@ public class PlayerCharacter : CharacterBase
     {
         param.InitPlayer(playerID);
 
+        UpdateHP(true);
         UpdateClassIcon();
     }
 

@@ -436,6 +436,7 @@ public class FieldSystem : MonoBehaviour
             e.SetLocation(new Vector2Int(Util.RandomInt(1, 5), i));
             e.SetCharacter(eid);
             e.InitParameter(lv);
+            e.SetWeaponAndDrop();
             enemies.Add(e);
         }
 
@@ -453,6 +454,7 @@ public class FieldSystem : MonoBehaviour
             e.SetLocation(new Vector2Int(1, ROW_COUNT - 1));
             e.SetCharacter(eid);
             e.InitParameter(strongLv);
+            e.SetWeaponAndDrop();
             enemies.Add(e);
         }
     }

@@ -13,7 +13,13 @@ public class EnemyCharacter : CharacterBase
 
     #region 変数
 
+    /// <summary>敵ID</summary>
     public Constant.EnemyID enemyID { get; private set; }
+
+    /// <summary>使用武器ID</summary>
+    public GameDatabase.ItemID weaponID { get; private set; }
+    /// <summary>ドロップアイテムID</summary>
+    public GameDatabase.ItemID dropID { get; private set; }
 
     #endregion
 
@@ -35,6 +41,15 @@ public class EnemyCharacter : CharacterBase
     /// </summary>
     /// <returns></returns>
     public string GetEnemyName() { return GameDatabase.Name_Enemies[(int)enemyID]; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public void SetWeaponAndDrop()
+    {
+        weaponID = GameDatabase.ItemID.FreeHand;
+        dropID = GameDatabase.ItemID.Sword1;
+    }
 
     #endregion
 

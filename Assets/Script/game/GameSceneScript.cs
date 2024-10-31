@@ -245,6 +245,7 @@ public class GameSceneScript : MainScriptBase
     {
         var manager = ManagerSceneScript.GetInstance();
         var itemui = manager.itemListUI;
+        var estUI = manager.battleEstimateUI;
 
         while (true)
         {
@@ -277,15 +278,28 @@ public class GameSceneScript : MainScriptBase
                 // アイテム・杖はキャラが仲間でなければキャンセル
                 if (!selAtkChr.IsPlayer()) continue;
                 yield return PTurnHealCoroutine(pc, selAtkChr as PlayerCharacter, itemui.Result_SelectIndex);
+                break;
             }
             else
             {
                 // 武器は敵でなければキャンセル
                 if (selAtkChr.IsPlayer()) continue;
-                yield return TurnBattleCoroutine(pc, selAtkChr, null);
+
+                // 選んだ武器を装備扱いにする
+                GameParameter.otherData.SetEquipIndex(pc.playerID, itemui.Result_SelectIndex);
+
+                // 戦闘結果予測表示
+                var battleParam = GameParameter.GetBattleParameter(pc, selAtkChr);
+                yield return estUI.ShowCoroutine(battleParam, pc, selAtkChr as EnemyCharacter);
+                // キャンセル
+                if (estUI.Result == BattleEstimateUI.BattleSelectResult.Cancel) continue;
+
+                yield return TurnBattleCoroutine(battleParam, pc, selAtkChr, null);
+                break;
             }
         }
 
+        // 行動終了
         callback?.Invoke(1);
     }
 
@@ -304,12 +318,15 @@ public class GameSceneScript : MainScriptBase
     /// <summary>
     /// 戦闘コルーチン
     /// </summary>
+    /// <param name="param">戦闘計算</param>
     /// <param name="atkChr"></param>
     /// <param name="defChr"></param>
     /// <param name="callback"></param>
     /// <returns></returns>
-    private IEnumerator TurnBattleCoroutine(CharacterBase atkChr, CharacterBase defChr, Action<int> callback)
+    private IEnumerator TurnBattleCoroutine(GameParameter.BattleParameter param, CharacterBase atkChr, CharacterBase defChr, Action<int> callback)
     {
+        var manager = ManagerSceneScript.GetInstance();
+
         yield return null;
         callback?.Invoke(1);
     }

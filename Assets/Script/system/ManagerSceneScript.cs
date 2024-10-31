@@ -69,6 +69,9 @@ public class ManagerSceneScript : MonoBehaviour
     /// <summary>アイテムリスト</summary>
     public ItemListUI itemListUI = null;
 
+    /// <summary>戦闘予測UI</summary>
+    public BattleEstimateUI battleEstimateUI = null;
+
     /// <summary>フェーダ</summary>
     public CanvasGroup fader = null;
 

@@ -381,11 +381,19 @@ public class GameDatabase
         public int rangeMin;
         public int rangeMax;
         public int critical;
-
         public ItemData(ItemType it, string nm, int use, int a, int hi, int rMin, int rMax, int crt = 0)
         {
             iType = it; name = nm; maxUse = use;
             atk = a; hit = hi; rangeMin = rMin; rangeMax = rMax; critical = crt;
+        }
+
+        /// <summary>
+        /// 物理武器判定
+        /// </summary>
+        /// <returns></returns>
+        public bool is_melee()
+        {
+            return iType != ItemType.Book;
         }
     }
 
@@ -440,6 +448,36 @@ public class GameDatabase
         new(ItemType.Arrow, "キラーボウ", 20, 9, 80, 2, 3, 30),
         new(ItemType.Book, "キルグリム", 20, 8, 70, 1, 2, 30),
     };
+
+    /// <summary>
+    /// 武器相性チェック
+    /// </summary>
+    /// <param name="item1"></param>
+    /// <param name="item2"></param>
+    /// <returns>1:攻撃側有利　-1:防御側有利　0:相性なし</returns>
+    public static int CheckWeaponAdvantage(ItemID item1, ItemID item2)
+    {
+        var data1 = ItemDataList[(int)item1];
+        var data2 = ItemDataList[(int)item2];
+
+        if (data1.iType == ItemType.Sword)
+        {
+            if (data2.iType == ItemType.Spear) return -1;
+            if (data2.iType == ItemType.Axe) return 1;
+        }
+        else if (data1.iType == ItemType.Spear)
+        {
+            if (data2.iType == ItemType.Sword) return 1;
+            if (data2.iType == ItemType.Axe) return -1;
+        }
+        else if (data1.iType == ItemType.Axe)
+        {
+            if (data2.iType == ItemType.Sword) return -1;
+            if (data2.iType == ItemType.Spear) return 1;
+        }
+
+        return 0;
+    }
 
     #endregion
 }

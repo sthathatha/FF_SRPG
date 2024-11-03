@@ -70,6 +70,10 @@ public class CharacterBase : MonoBehaviour
         {
             anim.GetComponent<SpriteRenderer>().color = a ? Color.white : Color.gray;
         }
+        if (!a)
+        {
+            PlayAnim(Constant.Direction.None);
+        }
     }
 
     #endregion

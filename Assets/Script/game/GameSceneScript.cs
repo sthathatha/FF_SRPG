@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
+using static GameDatabase;
 
 /// <summary>
 /// 本編
@@ -234,7 +235,6 @@ public class GameSceneScript : MainScriptBase
             else if (command.Result == CommandUI.CommandResult.Wait)
             {
                 // 待機
-                pc.PlayAnim(Constant.Direction.None);
                 pc.SetActable(false);
                 callback?.Invoke(1);
                 yield break;
@@ -242,7 +242,6 @@ public class GameSceneScript : MainScriptBase
             else if (command.Result == CommandUI.CommandResult.Escape)
             {
                 //todo: 撤退
-                pc.PlayAnim(Constant.Direction.None);
                 pc.SetActable(false);
                 pc.param.HP -= 3;
                 if (pc.param.HP < 0) pc.param.HP = 0;
@@ -257,7 +256,6 @@ public class GameSceneScript : MainScriptBase
                 yield return ClassChangeCoroutine(pc, (r) => ccResult = r);
                 if (ccResult)
                 {
-                    pc.PlayAnim(Constant.Direction.None);
                     pc.SetActable(false);
                     pc.UpdateHP(true);
                     callback?.Invoke(1);
@@ -321,8 +319,10 @@ public class GameSceneScript : MainScriptBase
             {
                 // アイテム・杖はキャラが仲間でなければキャンセル
                 if (!selAtkChr.IsPlayer()) continue;
+                // すでにHP最大ならキャンセル
+                if (selAtkChr.param.HP == selAtkChr.param.MaxHP) continue;
                 yield return PTurnHealCoroutine(pc, selAtkChr as PlayerCharacter, itemui.Result_SelectIndex);
-
+                pc.SetActable(false);
                 break;
             }
             else
@@ -522,7 +522,6 @@ public class GameSceneScript : MainScriptBase
             phase++;
         }
 
-        atkChr?.PlayAnim(Constant.Direction.None);
         atkChr?.SetActable(false);
         defChr?.PlayAnim(Constant.Direction.None);
 
@@ -559,9 +558,52 @@ public class GameSceneScript : MainScriptBase
     /// <returns></returns>
     private IEnumerator PTurnHealCoroutine(PlayerCharacter pc, PlayerCharacter target, int itemIndex)
     {
-        yield return null;
+        var manager = ManagerSceneScript.GetInstance();
+        pc.PlayAnim(Constant.Direction.None);
 
-        // 経験値取得・レベルアップ
+        // 回復量決定
+        var healNum = 0;
+        var itm = GameParameter.otherData.haveItemList[itemIndex];
+        if (itm.ItemData.iType == GameDatabase.ItemType.Item)
+        {
+            // 薬は自分の最大HP割合
+            healNum = target.param.MaxHP * itm.ItemData.atk / 100;
+        }
+        else
+        {
+            // 杖は自分の魔力＋武器威力
+            var rates = GameDatabase.Prm_ClassWeaponRate_Get(pc.playerID, pc.GetSaveParameter().ClassID);
+            var rate = rates.Get(GameDatabase.ItemType.Rod);
+            var wpnAtk = itm.ItemData.atk * rate / 100;
+            if (pc.param.Mag < 100)
+                healNum = pc.param.Mag + wpnAtk;
+            else
+                healNum = pc.param.Mag + pc.param.Mag * wpnAtk / 100;
+        }
+
+        target.param.HP += healNum;
+        if (target.param.HP > target.param.MaxHP) target.param.HP = target.param.MaxHP;
+
+        manager.soundMan.PlaySE(se_heal);
+        target.UpdateHP();
+        yield return new WaitForSeconds(1f);
+
+        // 経験値取得・レベルアップ処理
+        if (itm.ItemData.iType == ItemType.Rod)
+        {
+            var expGet = ExpCalcHeal(pc);
+            if (expGet > 0)
+            {
+                yield return ExpGetCoroutine(pc, expGet);
+            }
+        }
+
+        // 武器破壊処理
+        itm.useCount--;
+        if (itm.useCount <= 0)
+        {
+            yield return BattleWeaponBreak(itemIndex);
+        }
     }
 
     /// <summary>

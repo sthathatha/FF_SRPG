@@ -45,12 +45,12 @@ public class GameDatabase
 
     /// <summary>プレイヤー成長率％</summary>
     public static readonly ParameterData[] Prm_PlayerGrow = new ParameterData[] {
-        new ParameterData(70, 130, 0, 45, 35, 40, 25, 10, 0),
-        new ParameterData(100, 50, 5, 30, 25, 35, 70, 50, 0),
-        new ParameterData(85, 60, 5, 60, 45, 30, 40, 25, 0),
-        new ParameterData(70, 35, 20, 60, 75, 35, 20, 30, 0),
-        new ParameterData(45, 15, 80, 35, 30, 60, 15, 70, 0),
-        new ParameterData(75, 50, 25, 50, 50, 45, 30, 30, 0),
+        new ParameterData(70, 130, 0, 45, 40, 40, 30, 10, 0),
+        new ParameterData(100, 45, 5, 35, 20, 30, 60, 40, 0),
+        new ParameterData(85, 50, 10, 55, 45, 20, 40, 25, 0),
+        new ParameterData(60, 40, 20, 50, 65, 40, 20, 40, 0),
+        new ParameterData(50, 15, 70, 40, 30, 60, 15, 55, 0),
+        new ParameterData(65, 55, 25, 50, 50, 45, 25, 30, 0),
     };
 
     /// <summary>
@@ -290,6 +290,10 @@ public class GameDatabase
     #endregion
 
     #region 名称データベース
+
+    // 他の場所にあるテキスト
+    // を手に入れた
+    // が壊れた
 
     /// <summary>プレイヤー名</summary>
     public static readonly string[] Name_Players =

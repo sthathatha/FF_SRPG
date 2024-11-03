@@ -9,6 +9,8 @@ using UnityEngine.UI;
 /// </summary>
 public class CommandUI : MonoBehaviour
 {
+    private const float COMMAND_X = 200f;
+
     #region 戻り値
 
     /// <summary>
@@ -30,6 +32,7 @@ public class CommandUI : MonoBehaviour
 
     public RectTransform window;
     public Button ccText;
+    public Button escText;
 
     #endregion
 
@@ -66,9 +69,9 @@ public class CommandUI : MonoBehaviour
         // 半分より右に居る場合左に置く
         var pos = window.localPosition;
         if (pc.GetLocation().x >= FieldSystem.COL_COUNT / 2)
-            pos.x = -300f;
+            pos.x = -COMMAND_X;
         else
-            pos.x = 300f;
+            pos.x = COMMAND_X;
         window.localPosition = pos;
 
         // 2次職の場合Lv20以上、それ以外の場合Lv10以上の時のみクラスチェンジ可能
@@ -82,6 +85,9 @@ public class CommandUI : MonoBehaviour
             ccEnable = pc.param.Lv >= 10;
 
         ccText.interactable = ccEnable;
+
+        // 最後の一人なら撤退を選択不可
+        escText.interactable = pc.field.GetPlayers().Count > 1;
     }
 
     #endregion

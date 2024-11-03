@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
+using UnityEditor.Experimental;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -40,6 +42,8 @@ public class FieldSystem : MonoBehaviour
 
     public Button btn_TurnEnd;
 
+    public TMP_Text floorDisplay;
+
     #endregion
 
     #region フィールド内容
@@ -55,8 +59,20 @@ public class FieldSystem : MonoBehaviour
     /// <summary>敵リスト</summary>
     private List<EnemyCharacter> enemies = new List<EnemyCharacter>();
 
+    private int _battleFloor = 0;
     /// <summary>戦闘回数</summary>
-    public int Prm_BattleFloor { get; private set; } = 0;
+    public int Prm_BattleFloor
+    {
+        get
+        {
+            return _battleFloor;
+        }
+        private set
+        {
+            _battleFloor = value;
+            floorDisplay.SetText(value.ToString());
+        }
+    }
     /// <summary>戦闘内のターン数</summary>
     public int Prm_BattleTurn { get; set; } = 0;
 
@@ -418,41 +434,17 @@ public class FieldSystem : MonoBehaviour
             GameParameter.Prm_You.Init(Constant.PlayerID.You);
 
             // ドロシー
-            var p = Instantiate(player_dummy, Character_parent, false);
-            p.gameObject.SetActive(true);
-            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 1));
-            p.SetCharacter(Constant.PlayerID.Drows);
-            players.Add(p);
+            CreatePlayer(Constant.PlayerID.Drows, new Vector2Int(COL_COUNT - 1, ROW_COUNT - 1));
             // エラ
-            p = Instantiate(player_dummy, Character_parent, false);
-            p.gameObject.SetActive(true);
-            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 2));
-            p.SetCharacter(Constant.PlayerID.Eraps);
-            players.Add(p);
+            CreatePlayer(Constant.PlayerID.Eraps, new Vector2Int(COL_COUNT - 1, ROW_COUNT - 2));
             // エグザ
-            p = Instantiate(player_dummy, Character_parent, false);
-            p.gameObject.SetActive(true);
-            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 3));
-            p.SetCharacter(Constant.PlayerID.Exa);
-            players.Add(p);
+            CreatePlayer(Constant.PlayerID.Exa, new Vector2Int(COL_COUNT - 1, ROW_COUNT - 3));
             // ウーラ
-            p = Instantiate(player_dummy, Character_parent, false);
-            p.gameObject.SetActive(true);
-            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 4));
-            p.SetCharacter(Constant.PlayerID.Worra);
-            players.Add(p);
+            CreatePlayer(Constant.PlayerID.Worra, new Vector2Int(COL_COUNT - 1, ROW_COUNT - 4));
             // クー
-            p = Instantiate(player_dummy, Character_parent, false);
-            p.gameObject.SetActive(true);
-            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 5));
-            p.SetCharacter(Constant.PlayerID.Koob);
-            players.Add(p);
+            CreatePlayer(Constant.PlayerID.Koob, new Vector2Int(COL_COUNT - 1, ROW_COUNT - 5));
             // 悠
-            p = Instantiate(player_dummy, Character_parent, false);
-            p.gameObject.SetActive(true);
-            p.SetLocation(new Vector2Int(COL_COUNT - 1, ROW_COUNT - 6));
-            p.SetCharacter(Constant.PlayerID.You);
-            players.Add(p);
+            CreatePlayer(Constant.PlayerID.You, new Vector2Int(COL_COUNT - 1, ROW_COUNT - 6));
 
             // 所持品等初期化
             GameParameter.otherData.Init();
@@ -554,7 +546,7 @@ public class FieldSystem : MonoBehaviour
             players.Remove(pc);
 
             // 復活時間を設定
-            GameParameter.Prm_Get(pc.playerID).RestBattle = death ? 3 : 2;
+            GameParameter.Prm_Get(pc.playerID).RestBattle = death ? 4 : 2;
         }
         else
         {
@@ -562,6 +554,22 @@ public class FieldSystem : MonoBehaviour
         }
 
         Destroy(chr.gameObject);
+    }
+
+    /// <summary>
+    /// プレイヤーキャラ生成
+    /// </summary>
+    /// <param name="pid"></param>
+    /// <param name="loc"></param>
+    /// <returns></returns>
+    private PlayerCharacter CreatePlayer(Constant.PlayerID pid, Vector2Int loc)
+    {
+        var p = Instantiate(player_dummy, Character_parent, false);
+        p.gameObject.SetActive(true);
+        p.SetLocation(loc);
+        p.SetCharacter(pid);
+        players.Add(p);
+        return p;
     }
 
     /// <summary>
@@ -634,7 +642,75 @@ public class FieldSystem : MonoBehaviour
             c.SetLocation(loc);
         }
 
+        yield return ReturnPlayerCoroutine();
+
         yield return new WaitForSeconds(0.5f);
+    }
+
+    /// <summary>
+    /// 撤退プレイヤーの復帰処理
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator ReturnPlayerCoroutine()
+    {
+        var getEmptyCell = new Func<Vector2Int>(() =>
+        {
+            for (var r = ROW_COUNT - 1; r >= 0; --r)
+            {
+                if (GetCellCharacter(new Vector2Int(COL_COUNT - 1, r)) == null &&
+                    GetCellCharacter(new Vector2Int(COL_COUNT, r)) == null)
+                    return new Vector2Int(COL_COUNT - 1, r);
+            }
+            return new Vector2Int(COL_COUNT - 2, ROW_COUNT - 1);
+        });
+
+        bool created = false;
+        var restCheck = new Action<GameParameter.PlayerSaveParameter, Constant.PlayerID>((prm, id) =>
+        {
+            if (prm.RestBattle > 0)
+            {
+                prm.RestBattle--;
+                if (prm.RestBattle == 0)
+                {
+                    // 復帰
+                    var l = getEmptyCell();
+                    var l2 = l + new Vector2Int(1, 0);
+                    var p = CreatePlayer(id, l2);
+                    StartCoroutine(returnCharacterAnim(p, l));
+                    created = true;
+                }
+            }
+        });
+
+        // ６人チェック
+        restCheck(GameParameter.Prm_Drows, Constant.PlayerID.Drows);
+        restCheck(GameParameter.Prm_Eraps, Constant.PlayerID.Eraps);
+        restCheck(GameParameter.Prm_Exa, Constant.PlayerID.Exa);
+        restCheck(GameParameter.Prm_Worra, Constant.PlayerID.Worra);
+        restCheck(GameParameter.Prm_Koob, Constant.PlayerID.Koob);
+        restCheck(GameParameter.Prm_You, Constant.PlayerID.You);
+
+        if (created)
+        {
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+    /// <summary>
+    /// プレイヤー復帰アニメーション
+    /// </summary>
+    /// <param name="pc"></param>
+    /// <param name="l">戻ったあとの位置</param>
+    /// <returns></returns>
+    private IEnumerator returnCharacterAnim(PlayerCharacter pc, Vector2Int l)
+    {
+        var hist = new MoveHistory();
+        hist.history.Add(pc.GetLocation());
+        hist.history.Add(l);
+
+        yield return pc.Walk(hist);
+        pc.PlayAnim(Constant.Direction.None);
+        pc.SetLocation(l);
     }
 
     #endregion
@@ -781,6 +857,138 @@ public class FieldSystem : MonoBehaviour
         }
 
         return ret;
+    }
+
+    #endregion
+
+    #region AI用
+
+    /// <summary>
+    /// 移動して誰かに攻撃する
+    /// </summary>
+    public class AI_AttackTarget
+    {
+        public CharacterBase target;
+        public MoveHistory moveHist;
+    }
+
+    /// <summary>
+    /// 攻撃できるキャラクター検索
+    /// </summary>
+    /// <param name="own"></param>
+    /// <param name="moves"></param>
+    /// <returns></returns>
+    public List<AI_AttackTarget> GetAttackableCharacters(CharacterBase own, List<MoveHistory> moves, int rangeMin = -1, int rangeMax = -1)
+    {
+        if (rangeMin < 0) rangeMin = own.GetRangeMin();
+        if (rangeMax < 0) rangeMax = own.GetRangeMax();
+
+        var ret = new List<AI_AttackTarget>();
+        foreach (var move in moves)
+        {
+            var atkCells = GetRangeLocations(move.current, rangeMin, rangeMax);
+            foreach (var cell in atkCells)
+            {
+                var chr = GetCellCharacter(cell);
+                if (chr == null) continue;
+                if (own.IsPlayer() == chr.IsPlayer()) continue;
+                var oldCheck = ret.Find(a => a.target == chr);
+                if (oldCheck != null)
+                {
+                    // すでにある場合、相手が反撃できない位置を優先
+                    if (!AI_CheckInRange(chr, cell) && AI_CheckInRange(chr, oldCheck.moveHist.current))
+                        ret.Remove(oldCheck);
+                    else
+                        continue;
+                }
+
+                var ai = new AI_AttackTarget();
+                ai.target = chr;
+                ai.moveHist = move;
+                ret.Add(ai);
+            }
+        }
+
+        return ret;
+    }
+
+    /// <summary>
+    /// 射程範囲内かどうか
+    /// </summary>
+    /// <param name="chr"></param>
+    /// <param name="cell"></param>
+    /// <returns></returns>
+    private bool AI_CheckInRange(CharacterBase chr, Vector2Int cell)
+    {
+        var dist = chr.GetLocation() - cell;
+        var d = Math.Abs(dist.x) + Math.Abs(dist.y);
+        return d >= chr.GetRangeMin() && d <= chr.GetRangeMax();
+    }
+
+    /// <summary>
+    /// ターゲットと戦闘結果の保持
+    /// </summary>
+    private class AITargetResult
+    {
+        public AI_AttackTarget tgt;
+        public GameParameter.BattleParameter btl;
+    }
+
+    /// <summary>
+    /// どれに攻撃するか選択
+    /// </summary>
+    /// <param name="attackable"></param>
+    /// <returns></returns>
+    public AI_AttackTarget SelectAIAttack(CharacterBase own, List<AI_AttackTarget> attackable)
+    {
+        if (attackable.Count == 0) return null;
+
+        var niceList = new List<AITargetResult>();   // 優先リスト
+        var safeList = new List<AITargetResult>();   // 自分がダメージうけないリスト
+        var normalList = new List<AITargetResult>(); // 普通リスト
+        var zeroList = new List<AITargetResult>();   // ダメージ与えられないリスト
+        var dangerList = new List<AITargetResult>(); // 自分がやられるリスト
+
+        foreach (var ai in attackable)
+        {
+            // 戦闘結果予測
+            var result = GameParameter.GetBattleParameter(own, ai.target);
+            var aib = new AITargetResult() { tgt = ai, btl = result };
+
+            // 一発で倒せるならnice
+            if (result.a_dmg >= ai.target.param.HP && result.a_hit > 0) niceList.Add(aib);
+            // 反撃で自分がやられるならdanger
+            else if (result.d_dmg * result.d_atkCount >= own.param.HP && result.d_hit > 0) dangerList.Add(aib);
+            // 倒しきれるならnice
+            else if (result.a_dmg * result.a_atkCount >= ai.target.param.HP && result.a_hit > 0) niceList.Add(aib);
+            // 与えるダメージゼロ
+            else if (result.a_dmg == 0 || result.a_hit == 0) zeroList.Add(aib);
+            // 自分が受けるダメージゼロ
+            else if (result.d_dmg == 0 || result.d_hit == 0) safeList.Add(aib);
+            // それ以外
+            else normalList.Add(aib);
+        }
+
+        // 倒せるのがあれば選択
+        if (niceList.Count > 0) return niceList[0].tgt;
+
+        // 自分がくらわないリストから一番与ダメが大きいのを選択
+        if (safeList.Count > 0)
+            return safeList.OrderByDescending(ai => ai.btl.a_dmg).First().tgt;
+
+        // 通常リストから一番与ダメが大きいのを選択
+        if (normalList.Count > 0)
+            return normalList.OrderByDescending(ai => ai.btl.a_dmg).First().tgt;
+
+        // ゼロから自分のダメージが小さいのを選択
+        if (zeroList.Count > 0)
+            return zeroList.OrderBy(ai => ai.btl.d_dmg).First().tgt;
+
+        // 自分がやられるのから一番与ダメが大きいのを選択
+        if (dangerList.Count > 0)
+            return dangerList.OrderByDescending(ai => ai.btl.a_dmg).First().tgt;
+
+        return null;
     }
 
     #endregion

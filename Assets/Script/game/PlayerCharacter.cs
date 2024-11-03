@@ -65,6 +65,42 @@ public class PlayerCharacter : CharacterBase
         }
     }
 
+    /// <summary>
+    /// 装備中の武器
+    /// </summary>
+    /// <returns></returns>
+    public GameDatabase.ItemID GetEquipWeapon()
+    {
+        var idx = GameParameter.otherData.GetEquipIndex(playerID);
+        if (idx < 0) return GameDatabase.ItemID.FreeHand;
+
+        return GameParameter.otherData.haveItemList[idx].id;
+    }
+
+    /// <summary>
+    /// 射程
+    /// </summary>
+    /// <returns></returns>
+    public override int GetRangeMin()
+    {
+        var wid = GetEquipWeapon();
+        var wpnData = GameDatabase.ItemDataList[(int)wid];
+        return wpnData.rangeMin;
+    }
+
+    /// <summary>
+    /// 射程
+    /// </summary>
+    /// <returns></returns>
+    public override int GetRangeMax()
+    {
+        var wid = GetEquipWeapon();
+        var wpnData = GameDatabase.ItemDataList[(int)wid];
+
+        //todo:スキルで射程伸びる
+        return wpnData.rangeMax;
+    }
+
     #endregion
 
     #region キャラクター設定

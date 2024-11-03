@@ -34,6 +34,7 @@ public class GameSceneScript : MainScriptBase
     public AudioClip se_death;
     public AudioClip se_levelup;
     public AudioClip se_class_change;
+    public AudioClip se_escape;
 
     #endregion
 
@@ -235,17 +236,16 @@ public class GameSceneScript : MainScriptBase
             else if (command.Result == CommandUI.CommandResult.Wait)
             {
                 // 待機
-                pc.SetActable(false);
+                PTurnSetActEnd(pc);
                 callback?.Invoke(1);
                 yield break;
             }
             else if (command.Result == CommandUI.CommandResult.Escape)
             {
-                //todo: 撤退
-                pc.SetActable(false);
-                pc.param.HP -= 3;
-                if (pc.param.HP < 0) pc.param.HP = 0;
-                pc.UpdateHP(true);
+                // 撤退
+                var se = manager.soundMan.PlaySELoop(se_escape);
+                manager.soundMan.StopLoopSE(se, 1f);
+                field.DeleteCharacter(pc, false);
                 callback?.Invoke(1);
                 yield break;
             }
@@ -256,7 +256,7 @@ public class GameSceneScript : MainScriptBase
                 yield return ClassChangeCoroutine(pc, (r) => ccResult = r);
                 if (ccResult)
                 {
-                    pc.SetActable(false);
+                    PTurnSetActEnd(pc);
                     pc.UpdateHP(true);
                     callback?.Invoke(1);
                     yield break;
@@ -287,11 +287,13 @@ public class GameSceneScript : MainScriptBase
         var manager = ManagerSceneScript.GetInstance();
         var itemui = manager.itemListUI;
         var estUI = manager.battleEstimateUI;
+        var initItemFilter = true;
 
         while (true)
         {
             // 行動アイテム選択UI
-            yield return itemui.ShowCoroutine(pc);
+            yield return itemui.ShowCoroutine(pc, initItemFilter);
+            initItemFilter = false;
             // キャンセル
             if (itemui.Result == ItemListUI.ItemResult.Cancel)
             {
@@ -322,7 +324,7 @@ public class GameSceneScript : MainScriptBase
                 // すでにHP最大ならキャンセル
                 if (selAtkChr.param.HP == selAtkChr.param.MaxHP) continue;
                 yield return PTurnHealCoroutine(pc, selAtkChr as PlayerCharacter, itemui.Result_SelectIndex);
-                pc.SetActable(false);
+                PTurnSetActEnd(pc);
                 break;
             }
             else
@@ -352,6 +354,23 @@ public class GameSceneScript : MainScriptBase
         callback?.Invoke(1);
     }
 
+    /// <summary>
+    /// 行動終了セット
+    /// </summary>
+    /// <param name="pc"></param>
+    private void PTurnSetActEnd(PlayerCharacter pc)
+    {
+        // 敵がもう居なかったら終了しない
+        if (field.GetEnemies().Count == 0)
+        {
+            pc.PlayAnim(Constant.Direction.None);
+            field.ResetAllActable();
+            return;
+        }
+
+        pc.SetActable(false);
+    }
+
     #endregion
 
     #region 敵ターン
@@ -363,8 +382,66 @@ public class GameSceneScript : MainScriptBase
     private IEnumerator EnemyTurn()
     {
         var manager = ManagerSceneScript.GetInstance();
+
+        // 敵が居なかったらターンなし
+        if (field.GetActableChara(false).Count == 0) yield break;
+
         // ターン表示
         yield return manager.turnDisplay.DisplayTurnStart(false);
+
+        // 動けるのが居なくなるまで
+        while (field.GetActableChara(false).Count > 0)
+        {
+            var enm = field.GetActableChara(false)[0] as EnemyCharacter;
+            var moveList = field.GetMovableLocations(enm)
+                .Where(l => field.GetCellCharacter(l.current) == null).ToList();
+            var attackableList = field.GetAttackableCharacters(enm, moveList);
+            var atkAI = field.SelectAIAttack(enm, attackableList);
+            if (atkAI == null)
+            {
+                // 攻撃できる相手が居ない
+                if (enm.isBoss)
+                {
+                    // ボスは動かない
+                    enm.SetActable(false);
+                    continue;
+                }
+
+                // 近づくプレイヤーを選択
+                var player = field.GetPlayers().OrderBy(p =>
+                {
+                    var dist = p.GetLocation() - enm.GetLocation();
+                    return Math.Abs(dist.x) + Math.Abs(dist.y);
+                }).First(); // 一番近いキャラ
+                // 一番近い移動先を選択
+                var moveSel = moveList.OrderBy(m =>
+                {
+                    var dist = player.GetLocation() - m.current;
+                    return Math.Abs(dist.x) + Math.Abs(dist.y);
+                }).First();
+                // 移動
+                yield return enm.Walk(moveSel);
+                enm.SetLocation(moveSel.current);
+                enm.SetActable(false);
+            }
+            else
+            {
+                // 移動
+                yield return enm.Walk(atkAI.moveHist);
+                enm.SetLocation(atkAI.moveHist.current);
+
+                // 攻撃表示
+                field.ShowTile(new List<Vector2Int>() { atkAI.target.GetLocation() }, COLOR_TILE_ATTACK);
+                yield return new WaitForSeconds(0.5f);
+                field.ClearTiles();
+
+                // 攻撃する
+                var battleParam = GameParameter.GetBattleParameter(enm, atkAI.target);
+                yield return TurnBattleCoroutine(battleParam, enm, atkAI.target, null);
+
+                yield return new WaitForSeconds(0.3f);
+            }
+        }
     }
 
     #endregion
@@ -522,7 +599,11 @@ public class GameSceneScript : MainScriptBase
             phase++;
         }
 
-        atkChr?.SetActable(false);
+        if (atkChr != null)
+        {
+            if (atkChr.IsPlayer()) PTurnSetActEnd(atkChr as PlayerCharacter);
+            else atkChr.SetActable(false);
+        }
         defChr?.PlayAnim(Constant.Direction.None);
 
         // 経験値取得・レベルアップ処理

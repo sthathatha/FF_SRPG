@@ -21,7 +21,8 @@ public class EnemyCharacter : CharacterBase
     /// <summary>ドロップアイテムID</summary>
     public GameDatabase.ItemID dropID { get; private set; }
 
-    private bool isBoss = false;
+    /// <summary>ボスフラグ</summary>
+    public bool isBoss { get; private set; } = false;
 
     #endregion
 
@@ -74,6 +75,26 @@ public class EnemyCharacter : CharacterBase
             else
                 dropID = GameDatabase.CalcRandomItem(param.Lv, false, false, outRate: 98);
         }
+    }
+
+    /// <summary>
+    /// 射程
+    /// </summary>
+    /// <returns></returns>
+    public override int GetRangeMin()
+    {
+        var wpnData = GameDatabase.ItemDataList[(int)weaponID];
+        return wpnData.rangeMin;
+    }
+
+    /// <summary>
+    /// 射程
+    /// </summary>
+    /// <returns></returns>
+    public override int GetRangeMax()
+    {
+        var wpnData = GameDatabase.ItemDataList[(int)weaponID];
+        return wpnData.rangeMax;
     }
 
     #endregion

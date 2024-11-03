@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,6 +37,7 @@ public class StatusScreen : MonoBehaviour
     public GameObject dropWindow;
     public GameObject weaponRateWindow;
     public GameObject skillWindow;
+    public GameObject realAttackWindow;
 
     // 値表示用
     public TMP_Text txt_className;
@@ -62,6 +64,7 @@ public class StatusScreen : MonoBehaviour
     public TMP_Text txt_weapon;
     public Image icon_dropItem;
     public TMP_Text txt_dropItem;
+    public TMP_Text txt_realAttack;
 
     //todo: スキル表示用
 
@@ -134,6 +137,7 @@ public class StatusScreen : MonoBehaviour
         weaponWindow.SetActive(false);
         dropWindow.SetActive(false);
         weaponRateWindow.SetActive(true);
+        realAttackWindow.SetActive(false);
 
         // 武器熟練度
         var weaponRate = GameDatabase.Prm_ClassWeaponRate_Get(chr.playerID, saveParam.ClassID);
@@ -166,6 +170,7 @@ public class StatusScreen : MonoBehaviour
         weaponWindow.SetActive(true);
         dropWindow.SetActive(true);
         weaponRateWindow.SetActive(false);
+        realAttackWindow.SetActive(true);
 
         // 所持武器
         var weaponData = GameDatabase.ItemDataList[(int)chr.weaponID];
@@ -183,6 +188,14 @@ public class StatusScreen : MonoBehaviour
             icon_dropItem.sprite = manager.generalResources.GetItemIcon(dropData.iType);
             txt_dropItem.SetText(dropData.name);
         }
+
+        // 実攻撃力
+        var realAtk = 0;
+        if (weaponData.is_melee())
+            realAtk = GameParameter.CalcWeaponValue(chr.param.Atk, weaponData.atk);
+        else
+            realAtk = GameParameter.CalcWeaponValue(chr.param.Mag, weaponData.atk);
+        txt_realAttack.SetText(realAtk.ToString());
 
         faceImage.sprite = manager.generalResources.GetFaceIconE(chr.enemyID);
     }

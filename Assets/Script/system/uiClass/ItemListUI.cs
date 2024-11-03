@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
+using UnityEngine.UI;
 using static UnityEditor.Progress;
 
 /// <summary>
@@ -18,10 +19,19 @@ public class ItemListUI : MonoBehaviour
     public RectTransform item_parent;
     public Transform window;
 
+    public Toggle tgl_sword;
+    public Toggle tgl_spear;
+    public Toggle tgl_axe;
+    public Toggle tgl_arrow;
+    public Toggle tgl_book;
+    public Toggle tgl_rod;
+    public Toggle tgl_item;
+
     #endregion
 
     #region 変数
 
+    private Constant.PlayerID playerID;
     private List<ItemListUIItem> items = new List<ItemListUIItem>();
 
     #endregion
@@ -48,10 +58,24 @@ public class ItemListUI : MonoBehaviour
     /// アイテム選択開く
     /// </summary>
     /// <param name="pc"></param>
+    /// <param name="initFilter">フィルタ初期化</param>
     /// <returns></returns>
-    public IEnumerator ShowCoroutine(PlayerCharacter pc)
+    public IEnumerator ShowCoroutine(PlayerCharacter pc, bool initFilter)
     {
-        Result = ItemResult.Active;
+        playerID = pc.playerID;
+        if (initFilter)
+        {
+            var saveParam = pc.GetSaveParameter();
+            var classPrm = GameDatabase.Prm_ClassWeaponRate_Get(pc.playerID, saveParam.ClassID);
+            tgl_sword.isOn = classPrm.sword >= 100;
+            tgl_spear.isOn = classPrm.spear >= 100;
+            tgl_axe.isOn = classPrm.axe >= 100;
+            tgl_arrow.isOn = classPrm.arrow >= 100;
+            tgl_book.isOn = classPrm.book >= 100;
+            tgl_rod.isOn = classPrm.rod >= 100;
+            tgl_item.isOn = false;
+        }
+
         CreateItemList(pc.playerID);
         // 半分より右に居る場合左に置く
         var pos = window.localPosition;
@@ -61,6 +85,7 @@ public class ItemListUI : MonoBehaviour
             pos.x = 240f;
         window.localPosition = pos;
 
+        Result = ItemResult.Active;
         gameObject.SetActive(true);
         yield return new WaitWhile(() => Result == ItemResult.Active);
         gameObject.SetActive(false);
@@ -84,6 +109,19 @@ public class ItemListUI : MonoBehaviour
         Result = ItemResult.Select;
         if (index < 0) Result_SelectData = GameDatabase.ItemDataList[0]; // 素手
         else Result_SelectData = GameParameter.otherData.haveItemList[index].ItemData; // 選択アイテム
+    }
+
+    #endregion
+
+    #region トグル
+
+    /// <summary>
+    /// トグル変更
+    /// </summary>
+    public void ChangeSwitch()
+    {
+        if (Result != ItemResult.Active) return;
+        CreateItemList(playerID);
     }
 
     #endregion
@@ -115,7 +153,16 @@ public class ItemListUI : MonoBehaviour
 
         for (var i = 0; i < GameParameter.otherData.haveItemList.Count; ++i)
         {
+            // トグルスイッチオンの場合のみ
             var itm = GameParameter.otherData.haveItemList[i];
+            if (itm.ItemData.iType == GameDatabase.ItemType.Sword && !tgl_sword.isOn) continue;
+            if (itm.ItemData.iType == GameDatabase.ItemType.Spear && !tgl_spear.isOn) continue;
+            if (itm.ItemData.iType == GameDatabase.ItemType.Axe && !tgl_axe.isOn) continue;
+            if (itm.ItemData.iType == GameDatabase.ItemType.Arrow && !tgl_arrow.isOn) continue;
+            if (itm.ItemData.iType == GameDatabase.ItemType.Book && !tgl_book.isOn) continue;
+            if (itm.ItemData.iType == GameDatabase.ItemType.Rod && !tgl_rod.isOn) continue;
+            if (itm.ItemData.iType == GameDatabase.ItemType.Item && !tgl_item.isOn) continue;
+
             var ui = Instantiate(item_dummy, item_parent, false);
             ui.gameObject.SetActive(true);
 

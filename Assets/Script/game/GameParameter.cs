@@ -269,7 +269,6 @@ public class GameParameter
             AddItem(GameDatabase.ItemID.Book1);
             AddItem(GameDatabase.ItemID.Rod1);
             AddItem(GameDatabase.ItemID.Item1);
-            AddItem(GameDatabase.ItemID.Arrow3);
 
             equip_Drows = GetUsableEquip(Constant.PlayerID.Drows);
             equip_Eraps = GetUsableEquip(Constant.PlayerID.Eraps);
@@ -562,22 +561,16 @@ public class GameParameter
         // —Í‚ª100‚ğ’´‚¦‚½‚ç•ŠíˆĞ—Í‚Í“‚Å‘‰Á
         var aWpnAtk = (a_weaponData.atk + a_dmgPlus) * a_weaponRate / 100;
         var dWpnAtk = (d_weaponData.atk + d_dmgPlus) * d_weaponRate / 100;
-        if (a_atk < 100) a_atk += aWpnAtk;
-        else a_atk += a_atk * aWpnAtk / 100;
-        if (d_atk < 100) d_atk += dWpnAtk;
-        else d_atk += d_atk * dWpnAtk / 100;
+        a_atk = CalcWeaponValue(a_atk, aWpnAtk);
+        d_atk = CalcWeaponValue(d_atk, dWpnAtk);
 
         // –½’†
-        if (a_hit < 100) a_hit += a_weaponData.hit + a_hitPlus;
-        else a_hit += a_hit * (a_weaponData.hit + a_hitPlus) / 100;
-        if (d_hit < 100) d_hit += d_weaponData.hit + d_hitPlus;
-        else d_hit += d_hit * (d_weaponData.hit + d_hitPlus) / 100;
+        a_hit = CalcWeaponValue(a_hit, a_weaponData.hit + a_hitPlus);
+        d_hit = CalcWeaponValue(d_hit, d_weaponData.hit + d_hitPlus);
 
         // •KE
-        if (a_crt < 100) a_crt += a_weaponData.critical + a_crtPlus;
-        else a_crt += a_crt * (a_weaponData.critical + a_crtPlus) / 100;
-        if (d_crt < 100) d_crt += d_weaponData.critical + d_crtPlus;
-        else d_crt += d_crt * (d_weaponData.critical + d_crtPlus) / 100;
+        a_crt = CalcWeaponValue(a_crt, a_weaponData.critical + a_crtPlus);
+        d_crt = CalcWeaponValue(d_crt, d_weaponData.critical + d_crtPlus);
         #endregion
 
         #region ŒvZ
@@ -607,6 +600,20 @@ public class GameParameter
         #endregion
 
         return ret;
+    }
+
+    /// <summary>
+    /// •ŠíˆĞ—Í‚Ì‰ÁZ
+    /// –½’†E•KE—¦‚à“¯‚¶®
+    /// </summary>
+    /// <param name="strength">‘f‚Ì—Í</param>
+    /// <param name="wpn">•ŠíˆĞ—Í</param>
+    /// <returns>ÀÛ‚ÌUŒ‚—Í</returns>
+    public static int CalcWeaponValue(int strength, int wpn)
+    {
+        if (strength < 100) return strength + wpn;
+
+        return strength + strength * wpn / 100;
     }
 
     /// <summary>

@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// キャラクター共通機能
 /// </summary>
-public class CharacterBase : MonoBehaviour
+public abstract class CharacterBase : MonoBehaviour
 {
     #region メンバー
 
@@ -75,6 +75,17 @@ public class CharacterBase : MonoBehaviour
             PlayAnim(Constant.Direction.None);
         }
     }
+
+    /// <summary>
+    /// 最小射程
+    /// </summary>
+    /// <returns></returns>
+    abstract public int GetRangeMin();
+    /// <summary>
+    /// 最大射程
+    /// </summary>
+    /// <returns></returns>
+    abstract public int GetRangeMax();
 
     #endregion
 

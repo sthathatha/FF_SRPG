@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 /// <summary>
@@ -70,12 +71,32 @@ public class GameSceneScript : MainScriptBase
     {
         while (true)
         {
+            // ターン加算
+            field.Prm_BattleTurn++;
+
             yield return PlayerTurn();
             field.ResetAllActable();
 
+            if (Gameover_Check()) break;
+            if (NextFloor_Check())
+            {
+                yield return NextFloorCoroutine();
+                continue;
+            }
+
             yield return EnemyTurn();
             field.ResetAllActable();
+
+            if (Gameover_Check()) break;
+            if (NextFloor_Check())
+            {
+                yield return NextFloorCoroutine();
+            }
         }
+
+        yield return GameoverCoroutine();
+        // タイトル画面に戻る
+        ManagerSceneScript.GetInstance().LoadMainScene("TitleScene", 0);
     }
 
     /// <summary>
@@ -134,10 +155,10 @@ public class GameSceneScript : MainScriptBase
                 if (moveResult == 0) continue;
 
                 // 全員行動終了してたらターン終了
-                if (field.GetActableChara(true).Count == 0)
-                {
-                    break;
-                }
+                if (field.GetActableChara(true).Count == 0) break;
+
+                // 次のフロアに行く状態になっても終了
+                if (NextFloor_Check()) break;
             }
         }
     }
@@ -615,7 +636,20 @@ public class GameSceneScript : MainScriptBase
     /// <returns></returns>
     private int ExpCalcBattle(PlayerCharacter pc, int enemyLv, int atkDmg, bool isDefeat)
     {
-        return 100;
+        if (atkDmg == 0) return 1;
+
+        var checkLv = pc.param.Lv;
+        var savePrm = pc.GetSaveParameter();
+        if (savePrm.ClassID == Constant.ClassID.A || savePrm.ClassID == Constant.ClassID.B) checkLv += 20;
+        else if (savePrm.ClassID != Constant.ClassID.Base) checkLv += 40;
+        checkLv += savePrm.ReviveCount * 50;
+
+        var exp = 30 + (enemyLv - checkLv) * 10 / 3;
+
+        if (!isDefeat) exp /= 3;
+        if (exp < 1) return 1;
+        if (exp > 100) return 100;
+        return exp;
     }
 
     /// <summary>
@@ -776,6 +810,65 @@ public class GameSceneScript : MainScriptBase
         downParam.move = baseParam.move - nowParam.Move;
 
         return downParam;
+    }
+
+    #endregion
+
+    #region ゲームオーバー
+
+    /// <summary>
+    /// ゲームオーバー判定
+    /// </summary>
+    /// <returns></returns>
+    private bool Gameover_Check()
+    {
+        // プレイヤーが誰も居なかったら終わり
+        var players = field.GetPlayers();
+        return players.Count == 0;
+    }
+
+    /// <summary>
+    /// ゲームオーバー処理
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator GameoverCoroutine()
+    {
+        //todo:ランキング登録
+
+        //todo:UI表示
+
+        yield break;
+    }
+
+    #endregion
+
+    #region 次のフロアに進む
+
+    /// <summary>
+    /// 次に進む判定
+    /// </summary>
+    /// <returns></returns>
+    private bool NextFloor_Check()
+    {
+        var players = field.GetPlayers();
+
+        // ゲームオーバーは次行かない
+        if (players.Count == 0) return false;
+
+        // 左端じゃないキャラが居たら次行かない
+        if (players.Any(p => p.GetLocation().x != 0)) return false;
+
+        // 全員左端
+        return true;
+    }
+
+    /// <summary>
+    /// 次のフロアに進むコルーチン
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator NextFloorCoroutine()
+    {
+        yield return field.NextFloor();
     }
 
     #endregion

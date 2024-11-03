@@ -1,5 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 /// <summary>
@@ -385,6 +388,20 @@ public class GameDatabase
         "スケルトン",
     };
 
+    /// <summary>
+    /// 敵モデルの色
+    /// </summary>
+    /// <param name="eid"></param>
+    /// <returns></returns>
+    public static Color GetEnemyColor(Constant.EnemyID eid)
+    {
+        return eid switch
+        {
+            Constant.EnemyID.GreenSlime => new Color(0.3f, 1f, 0.3f), //グリーンスライム
+            _ => Color.white, // ほとんどはそのまま
+        };
+    }
+
     #endregion
 
     #region アイテムデータベース
@@ -417,10 +434,12 @@ public class GameDatabase
         public int rangeMin;
         public int rangeMax;
         public int critical;
-        public ItemData(ItemType it, string nm, int use, int a, int hi, int rMin, int rMax, int crt = 0)
+        public int rarelity;
+        public ItemData(ItemType it, string nm, int rare, int use, int a, int hi, int rMin, int rMax, int crt = 0)
         {
             iType = it; name = nm; maxUse = use;
             atk = a; hit = hi; rangeMin = rMin; rangeMax = rMax; critical = crt;
+            rarelity = rare;
         }
 
         /// <summary>
@@ -437,6 +456,7 @@ public class GameDatabase
     public enum ItemID
     {
         FreeHand = 0,
+        FreeMagic,
         Rod1,
         Item1,
         Sword1,
@@ -454,6 +474,18 @@ public class GameDatabase
         Axe3,
         Arrow3,
         Book3,
+        Sword_Ex1,
+        Spear_Ex1,
+        Axe_Ex1,
+        Arrow_Ex1,
+        Book_Ex1,
+        Sword_Ex2,
+        Spear_Ex2,
+        Axe_Ex2,
+        Arrow_Ex2,
+        Book_Ex2,
+
+        ITEM_COUNT,
     }
 
     /// <summary>
@@ -461,28 +493,45 @@ public class GameDatabase
     /// </summary>
     public static readonly ItemData[] ItemDataList = new ItemData[]
     {
-        new(ItemType.None, "素手", -1, 0, 100, 1, 1),
+        new(ItemType.None, "素手", -1, -1, 0, 100, 1, 1),
+        new(ItemType.None, "素手（魔）", -1, -1, 0, 100, 1, 1),
 
-        new(ItemType.Rod, "リフの杖", 30, 10, 100, 1, 1),
-        new(ItemType.Item, "エリクサー", 3, 100, 100, 0, 0),
+        new(ItemType.Rod, "リフの杖",      50, 30, 10, 100, 1, 1),
+        new(ItemType.Item, "エリクサー",   50, 3, 100, 100, 0, 0),
 
-        new(ItemType.Sword, "鉄の剣", 40, 5, 85, 1, 1),
-        new(ItemType.Spear, "鉄の槍", 40, 7, 70, 1, 1),
-        new(ItemType.Axe, "鉄の斧", 40, 8, 65, 1, 1),
-        new(ItemType.Arrow, "鉄の弓", 40, 6, 80, 2, 3),
-        new(ItemType.Book, "ファイアー", 40, 5, 95, 1, 2),
+        new(ItemType.Sword, "鉄の剣",       1, 40, 5, 85, 1, 1),
+        new(ItemType.Spear, "鉄の槍",       1, 40, 7, 70, 1, 1),
+        new(ItemType.Axe,   "鉄の斧",       1, 40, 8, 65, 1, 1),
+        new(ItemType.Arrow, "鉄の弓",       1, 40, 6, 80, 2, 3),
+        new(ItemType.Book,  "ファイアー",   1, 40, 5, 95, 1, 2),
 
-        new(ItemType.Sword, "銀の剣", 20, 13, 75, 1, 1),
-        new(ItemType.Spear, "銀の槍", 20, 14, 65, 1, 1),
-        new(ItemType.Axe, "銀の斧", 20, 15, 55, 1, 1),
-        new(ItemType.Arrow, "銀の弓", 20, 13, 70, 2, 3),
-        new(ItemType.Book, "ブリザード", 15, 13, 80, 1, 2),
+        new(ItemType.Sword, "銀の剣",       20, 20, 13, 75, 1, 1),
+        new(ItemType.Spear, "銀の槍",       20, 20, 14, 65, 1, 1),
+        new(ItemType.Axe, "銀の斧",         20, 20, 15, 55, 1, 1),
+        new(ItemType.Arrow, "銀の弓",       20, 20, 13, 70, 2, 3),
+        new(ItemType.Book, "ブリザード",    20, 15, 13, 80, 1, 2),
 
-        new(ItemType.Sword, "キルソード", 20, 9, 80, 1, 1, 30),
-        new(ItemType.Spear, "キラーランス", 20, 10, 75, 1, 1, 30),
-        new(ItemType.Axe, "キラーアクス", 20, 11, 65, 1, 1, 30),
-        new(ItemType.Arrow, "キラーボウ", 20, 9, 80, 2, 3, 30),
-        new(ItemType.Book, "キルグリム", 20, 8, 70, 1, 2, 30),
+        new(ItemType.Sword, "キルソード",   30, 20, 9, 80, 1, 1, 30),
+        new(ItemType.Spear, "キラーランス", 30, 20, 10, 75, 1, 1, 30),
+        new(ItemType.Axe, "キラーアクス",   30, 20, 11, 65, 1, 1, 30),
+        new(ItemType.Arrow, "キラーボウ",   30, 20, 9, 80, 2, 3, 30),
+        new(ItemType.Book, "キルグリム",    30, 20, 8, 70, 1, 2, 30),
+
+        new(ItemType.Sword, "ルキフグス",       100, 30, 23, 80, 1, 2, 15),
+        new(ItemType.Spear, "アガリアレプト",   100, 30, 18, 100, 1, 2, 15),
+        new(ItemType.Axe, "サタナキア",         100, 30, 19, 90, 1, 2, 15),
+        new(ItemType.Arrow, "フルーレティ",     100, 30, 18, 85, 2, 4, 15),
+        new(ItemType.Book, "アッピンの赤い本",  100, 30, 21, 95, 1, 3, 15),
+
+        new(ItemType.Sword, "妙法村正",         200, 30, 16, 120, 1, 1, 60),
+        new(ItemType.Spear, "ディスラプター",   200, 30, 27, 65, 1, 3, 0),
+        new(ItemType.Axe, "シルヴァームーン",   200, 30, 22, 100, 1, 1, 20),
+        new(ItemType.Arrow, "マルドゥーク",     200, 30, 15, 100, 2, 6, 0),
+        new(ItemType.Book, "ネクロノミコン",    200, 30, 36, 40, 1, 2, 0),
+
+
+
+        new(ItemType.None, "素手", -1, -1, 0, 100, 1, 1),
     };
 
     /// <summary>
@@ -513,6 +562,60 @@ public class GameDatabase
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// ランダムアイテム生成
+    /// </summary>
+    /// <param name="lv">持つ敵のレベル</param>
+    /// <param name="boss">ボスである</param>
+    /// <param name="weaponOnly">true:武器のみ</param>
+    /// <param name="type">None以外を指定するとタイプを指定</param>
+    /// <param name="outRate">ハズレになる確率0～100</param>
+    /// <returns></returns>
+    public static ItemID CalcRandomItem(int lv, bool boss, bool weaponOnly = true, ItemType type = ItemType.None, int outRate = 0)
+    {
+        var koho = new List<ItemID>();
+        var maxRarelity = 0;
+        var bossRate = boss ? 3 : 1; // ボスはレアリティ下がる＝レア高いものが出やすい
+
+        for (var i = 0; i < (int)ItemID.ITEM_COUNT; ++i)
+        {
+            var data = ItemDataList[i];
+            if (data.iType == ItemType.None) continue;
+            if (type != ItemType.None && data.iType != type) continue;
+            if (weaponOnly &&
+                (data.iType == ItemType.Rod ||
+                data.iType == ItemType.Item ||
+                data.iType == ItemType.None)) continue;
+
+            // rarelityレベルまでは出現しない
+            var rareLine = lv + (boss ? 20 : 0);
+            if (data.rarelity / bossRate > rareLine) continue;
+
+            if (maxRarelity < data.rarelity / bossRate) maxRarelity = data.rarelity / bossRate;
+            koho.Add((ItemID)i);
+        }
+
+        if (koho.Count == 0) return ItemID.FreeHand;
+
+        // 候補からrarelityによって確率で判定
+        // 最大値との差+1＝選ばれやすさ　最大値のものは1になる
+        var selectRate = new Func<ItemID, int>(id =>
+            maxRarelity - ItemDataList[(int)id].rarelity / bossRate + 1
+            );
+        // 全部の選ばれやすさを足す
+        var totalAdd = koho.Sum(id => selectRate(id));
+        var checkNum = Util.RandomInt(0, totalAdd);
+        foreach (var id in koho)
+        {
+            // ランダム値が選ばれやすさより小さければ選択
+            var rate = selectRate(id);
+            if (checkNum < rate) return id;
+            checkNum -= rate;
+        }
+
+        return ItemID.FreeHand;
     }
 
     #endregion

@@ -14,12 +14,12 @@ public class FieldSystem : MonoBehaviour
 {
     #region 定数
 
-    public static int ROW_COUNT = 7;
-    public static int COL_COUNT = 15;
+    public const int ROW_COUNT = 7;
+    public const int COL_COUNT = 15;
 
-    private static float CELL_SIZE = 64f;
-    private static float ZERO_X = -(COL_COUNT - 1) * CELL_SIZE / 2f;
-    private static float ZERO_Y = -(ROW_COUNT - 1) * CELL_SIZE / 2f;
+    private const float CELL_SIZE = 64f;
+    private const float ZERO_X = -(COL_COUNT - 1) * CELL_SIZE / 2f;
+    private const float ZERO_Y = -(ROW_COUNT - 1) * CELL_SIZE / 2f;
 
     #endregion
 
@@ -56,9 +56,9 @@ public class FieldSystem : MonoBehaviour
     private List<EnemyCharacter> enemies = new List<EnemyCharacter>();
 
     /// <summary>戦闘回数</summary>
-    private int Prm_BattleCount = 0;
+    public int Prm_BattleFloor { get; private set; } = 0;
     /// <summary>戦闘内のターン数</summary>
-    private int Prm_BattleTurn = 0;
+    public int Prm_BattleTurn { get; set; } = 0;
 
     #endregion
 
@@ -269,11 +269,56 @@ public class FieldSystem : MonoBehaviour
     {
         for (var c = 0; c < COL_COUNT; c++)
         {
-            var line = Instantiate(colLine_dummy);
-            line.SetParent(Line_parent, false);
+            var line = Instantiate(colLine_dummy, Line_parent, false);
             line.gameObject.SetActive(true);
             line.localPosition = LinePos(c);
             colLines.Add(line);
+        }
+    }
+
+    /// <summary>
+    /// 次のフロアの線を生成
+    /// </summary>
+    private void CreateNextLine()
+    {
+        for (var c = -1; c > -COL_COUNT; c--)
+        {
+            var line = Instantiate(colLine_dummy, Line_parent, false);
+            line.gameObject.SetActive(true);
+            line.localPosition = LinePos(c - COL_COUNT);
+            colLines.Insert(0, line);
+        }
+    }
+
+    /// <summary>
+    /// 全部の縦線の座標を指定
+    /// </summary>
+    /// <param name="headLineIdx">戦闘の列</param>
+    /// <param name="addX">加算X</param>
+    private void SetAllLinePos(int headLineIdx, float addX)
+    {
+        for (var i = 0; i < colLines.Count; i++)
+        {
+            var p = LinePos(i + headLineIdx);
+            p.x += addX;
+            colLines[i].localPosition = p;
+        }
+    }
+
+    /// <summary>
+    /// 古い枠線を削除
+    /// </summary>
+    private void DeleteOldLine()
+    {
+        var limitX = LinePos(COL_COUNT - 1).x + 1f;
+
+        for (var idx = colLines.Count - 1; idx >= 0; idx--)
+        {
+            // 右端より左のが見つかったら終了
+            if (colLines[idx].localPosition.x < limitX) break;
+
+            Destroy(colLines[idx].gameObject);
+            colLines.RemoveAt(idx);
         }
     }
 
@@ -361,7 +406,7 @@ public class FieldSystem : MonoBehaviour
         }
         else
         {
-            Prm_BattleCount = 1;
+            Prm_BattleFloor = 1;
             Prm_BattleTurn = 0;
 
             // 6人初期化
@@ -412,17 +457,32 @@ public class FieldSystem : MonoBehaviour
             // 所持品等初期化
             GameParameter.otherData.Init();
 
-            CreateRandomEnemy();
+            CreateRandomEnemy(false);
         }
     }
 
     /// <summary>
     /// 敵をランダム生成
     /// </summary>
-    private void CreateRandomEnemy()
+    /// <param name="next">true:次のフロア分生成（X座標マイナス） false:今の座標で生成</param>
+    private void CreateRandomEnemy(bool next = true)
     {
-        //todo:階層によってレベル
-        var lv = Prm_BattleCount + 4;
+        var addX = next ? -COL_COUNT + 1 : 0;
+
+        // 3フロアごとに敵レベル１アップ
+        var lv = Prm_BattleFloor / 3 + 1;
+
+        // ドロップアイテムを確実に持っているやつ
+        var dropIndex = -1;
+        var weaponTotalRest = GameParameter.otherData.haveItemList.Sum(itm =>
+        {
+            if (itm.ItemData.iType == GameDatabase.ItemType.None ||
+            itm.ItemData.iType == GameDatabase.ItemType.Rod ||
+            itm.ItemData.iType == GameDatabase.ItemType.Item) return 0;
+            else return itm.useCount;
+        });
+        // 袋の武器の合計が10回以下なら確実に武器ドロップ
+        if (weaponTotalRest < 10) dropIndex = Util.RandomInt(0, 4);
 
         // 4～6体の下級敵を生成
         var weakCnt = Util.RandomInt(4, 6);
@@ -433,15 +493,20 @@ public class FieldSystem : MonoBehaviour
 
             var e = Instantiate(enemy_dummy, Character_parent, false);
             e.gameObject.SetActive(true);
-            e.SetLocation(new Vector2Int(Util.RandomInt(1, 5), i));
+            e.SetLocation(new Vector2Int(Util.RandomInt(1, 5) + addX, i));
             e.SetCharacter(eid);
             e.InitParameter(lv);
-            e.SetWeaponAndDrop();
+            if (dropIndex == i)
+                e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(lv, false));
+            else if (dropIndex == 5)
+                e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(lv, false, false, outRate: 95));
+            else
+                e.SetWeaponAndDrop();
             enemies.Add(e);
         }
 
         // 強敵出現
-        if (Prm_BattleCount % 10 == 0)
+        if (Prm_BattleFloor % 10 == 0)
         {
             // 強敵のLv
             var strongLv = lv >= 100 ? Mathf.FloorToInt(lv * 1.1f) : lv + 10;
@@ -451,10 +516,10 @@ public class FieldSystem : MonoBehaviour
 
             var e = Instantiate(enemy_dummy, Character_parent, false);
             e.gameObject.SetActive(true);
-            e.SetLocation(new Vector2Int(1, ROW_COUNT - 1));
+            e.SetLocation(new Vector2Int(1 + addX, ROW_COUNT - 1));
             e.SetCharacter(eid);
             e.InitParameter(strongLv);
-            e.SetWeaponAndDrop();
+            e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(strongLv, true, false));
             enemies.Add(e);
         }
     }
@@ -482,7 +547,8 @@ public class FieldSystem : MonoBehaviour
     /// キャラ死亡処理
     /// </summary>
     /// <param name="chr"></param>
-    public void DeleteCharacter(CharacterBase chr)
+    /// <param name="death">true:死亡による削除　false:撤退による削除</param>
+    public void DeleteCharacter(CharacterBase chr, bool death = true)
     {
         if (chr.IsPlayer())
         {
@@ -490,7 +556,7 @@ public class FieldSystem : MonoBehaviour
             players.Remove(pc);
 
             // 復活時間を設定
-            GameParameter.Prm_Get(pc.playerID).RestBattle = 3;
+            GameParameter.Prm_Get(pc.playerID).RestBattle = death ? 3 : 2;
         }
         else
         {
@@ -498,6 +564,79 @@ public class FieldSystem : MonoBehaviour
         }
 
         Destroy(chr.gameObject);
+    }
+
+    /// <summary>
+    /// プレイヤーリスト取得
+    /// </summary>
+    /// <returns></returns>
+    public List<PlayerCharacter> GetPlayers() { return players; }
+
+    /// <summary>
+    /// 敵リスト取得
+    /// </summary>
+    /// <returns></returns>
+    public List<EnemyCharacter> GetEnemies() { return enemies; }
+
+    /// <summary>
+    /// 次のフロアに進む
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerator NextFloor()
+    {
+        const float MOVE_TIME = 1f;
+        const float MOVE_X = (COL_COUNT - 1) * CELL_SIZE;
+        // 次のフロアの敵を生成
+        Prm_BattleFloor++;
+        Prm_BattleTurn = 0;
+        CreateRandomEnemy(true);
+
+        // 新しい縦線を生成
+        CreateNextLine();
+
+        // キャラと縦線をCOLCOUNT-1個分動かす
+        var addX = new DeltaFloat();
+        addX.Set(0f);
+        addX.MoveTo(MOVE_X, MOVE_TIME, DeltaFloat.MoveType.LINE);
+        while (addX.IsActive())
+        {
+            yield return null;
+            addX.Update(Time.deltaTime);
+            var addV = new Vector3(addX.Get(), 0);
+
+            SetAllLinePos(-COL_COUNT + 1, addX.Get());
+            foreach (CharacterBase c in players)
+                c.transform.localPosition = GetCellPosition(c.GetLocation()) + addV;
+            foreach (CharacterBase c in enemies)
+                c.transform.localPosition = GetCellPosition(c.GetLocation()) + addV;
+        }
+
+        // 前のフロアの敵と縦線を消す
+        for (var i = enemies.Count - 1; i >= 0; i--)
+        {
+            if (enemies[i].GetLocation().x > 0) DeleteCharacter(enemies[i], false);
+        }
+        for (var i = players.Count - 1; i >= 0; i--)
+        {
+            // 本来右には残ってないはずだが一応プレイヤーも
+            if (players[i].GetLocation().x > 0) DeleteCharacter(players[i], false);
+        }
+
+        // 座標を修正
+        foreach (CharacterBase c in players)
+        {
+            var loc = c.GetLocation();
+            loc.x += COL_COUNT - 1;
+            c.SetLocation(loc);
+        }
+        foreach (CharacterBase c in enemies)
+        {
+            var loc = c.GetLocation();
+            loc.x += COL_COUNT - 1;
+            c.SetLocation(loc);
+        }
+
+        yield return new WaitForSeconds(0.5f);
     }
 
     #endregion

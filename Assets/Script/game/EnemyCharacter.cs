@@ -43,12 +43,22 @@ public class EnemyCharacter : CharacterBase
     public string GetEnemyName() { return GameDatabase.Name_Enemies[(int)enemyID]; }
 
     /// <summary>
-    /// 
+    /// 使用武器とドロップを設定
     /// </summary>
-    public void SetWeaponAndDrop()
+    /// <param name="wpn">未指定の場合は敵IDごとの既定値</param>
+    /// <param name="drp">未指定の場合はランダム？</param>
+    public void SetWeaponAndDrop(GameDatabase.ItemID wpn = GameDatabase.ItemID.FreeHand, GameDatabase.ItemID drp = GameDatabase.ItemID.FreeHand)
     {
-        weaponID = GameDatabase.ItemID.FreeHand;
-        dropID = GameDatabase.ItemID.Sword1;
+        if (wpn != GameDatabase.ItemID.FreeHand) { weaponID = wpn; }
+        else
+        {
+            weaponID = GameDatabase.ItemID.FreeHand;
+        }
+        if (drp != GameDatabase.ItemID.FreeHand) { dropID = drp; }
+        else
+        {
+            dropID = GameDatabase.ItemID.FreeHand;
+        }
     }
 
     #endregion
@@ -70,6 +80,8 @@ public class EnemyCharacter : CharacterBase
             Constant.EnemyID.GreenSlime => resources.anim_slime_base,
             _ => resources.anim_slime_base,
         };
+
+        anim.GetComponent<SpriteRenderer>().color = GameDatabase.GetEnemyColor(enemyID);
     }
 
     #endregion

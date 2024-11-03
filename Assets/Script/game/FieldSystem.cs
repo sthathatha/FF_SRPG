@@ -498,8 +498,6 @@ public class FieldSystem : MonoBehaviour
             e.InitParameter(lv);
             if (dropIndex == i)
                 e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(lv, false));
-            else if (dropIndex == 5)
-                e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(lv, false, false, outRate: 95));
             else
                 e.SetWeaponAndDrop();
             enemies.Add(e);
@@ -517,7 +515,7 @@ public class FieldSystem : MonoBehaviour
             var e = Instantiate(enemy_dummy, Character_parent, false);
             e.gameObject.SetActive(true);
             e.SetLocation(new Vector2Int(1 + addX, ROW_COUNT - 1));
-            e.SetCharacter(eid);
+            e.SetCharacter(eid, true);
             e.InitParameter(strongLv);
             e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(strongLv, true, false));
             enemies.Add(e);

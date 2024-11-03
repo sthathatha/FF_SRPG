@@ -479,7 +479,7 @@ public class GameSceneScript : MainScriptBase
             // 攻撃側
             StartCoroutine(chrA.AttackAnim(atkTurn ? aDist : dDist));
             if (atkTurn) CalcAtk(param.a_hit, param.a_critical, param.a_dmg, chrD.param.HP);
-            else CalcAtk(param.d_hit, param.d_critical, param.d_dmg, chrA.param.HP);
+            else CalcAtk(param.d_hit, param.d_critical, param.d_dmg, chrD.param.HP);
             yield return new WaitForSeconds(0.15f);
             // HP減らしてゲージ更新
             if (isHit)

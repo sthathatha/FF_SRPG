@@ -21,6 +21,8 @@ public class EnemyCharacter : CharacterBase
     /// <summary>ドロップアイテムID</summary>
     public GameDatabase.ItemID dropID { get; private set; }
 
+    private bool isBoss = false;
+
     #endregion
 
     #region パラメータ
@@ -52,12 +54,25 @@ public class EnemyCharacter : CharacterBase
         if (wpn != GameDatabase.ItemID.FreeHand) { weaponID = wpn; }
         else
         {
-            weaponID = GameDatabase.ItemID.FreeHand;
+            var other = GameDatabase.Prm_EnemyOther[(int)enemyID];
+            if (other.defaultWeaponType == GameDatabase.ItemType.None)
+            {
+                weaponID = param.Atk > param.Mag ? GameDatabase.ItemID.FreeHand : GameDatabase.ItemID.FreeMagic;
+            }
+            else
+            {
+                weaponID = GameDatabase.CalcRandomItem(param.Lv, isBoss, true, other.defaultWeaponType);
+                if (weaponID == GameDatabase.ItemID.FreeHand)
+                    weaponID = param.Atk > param.Mag ? GameDatabase.ItemID.FreeHand : GameDatabase.ItemID.FreeMagic;
+            }
         }
         if (drp != GameDatabase.ItemID.FreeHand) { dropID = drp; }
         else
         {
-            dropID = GameDatabase.ItemID.FreeHand;
+            if (isBoss)
+                dropID = GameDatabase.CalcRandomItem(param.Lv, true, false);
+            else
+                dropID = GameDatabase.CalcRandomItem(param.Lv, false, false, outRate: 98);
         }
     }
 
@@ -70,9 +85,10 @@ public class EnemyCharacter : CharacterBase
     /// </summary>
     /// <param name="eid"></param>
     /// <param name="lv"></param>
-    public void SetCharacter(Constant.EnemyID eid)
+    public void SetCharacter(Constant.EnemyID eid, bool boss = false)
     {
         enemyID = eid;
+        isBoss = boss;
 
         var resources = field.GetComponent<FieldCharacterModels>();
         anim.runtimeAnimatorController = eid switch
@@ -81,7 +97,8 @@ public class EnemyCharacter : CharacterBase
             _ => resources.anim_slime_base,
         };
 
-        anim.GetComponent<SpriteRenderer>().color = GameDatabase.GetEnemyColor(enemyID);
+        var other = GameDatabase.Prm_EnemyOther[(int)enemyID];
+        anim.GetComponent<SpriteRenderer>().color = other.modelColor;
     }
 
     #endregion

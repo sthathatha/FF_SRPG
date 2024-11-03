@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+using static GameDatabase;
 
 /// <summary>
 /// 定数データベース
@@ -278,13 +279,50 @@ public class GameDatabase
     /// <summary>敵Lv1</summary>
     public static readonly ParameterData[] Prm_EnemyInit = new ParameterData[]
     {
-        new ParameterData(16, 4, 0, 2, 1, 4, 5, 0, 4), //グリーンスライム
+        new ParameterData(15, 6, 1, 4, 3, 6, 8, 1, 4), // グリーンスライム
+        new ParameterData(18, 4, 1, 7, 5, 3, 4, 2, 4), // スケルトン（剣）
+        new ParameterData(18, 5, 1, 6, 4, 2, 6, 2, 4), // スケルトン（槍）
+        new ParameterData(18, 7, 1, 7, 3, 2, 4, 2, 4), // スケルトン（斧）
+        new ParameterData(15, 5, 1, 8, 7, 2, 4, 2, 4), // スケルトン（弓）
+        new ParameterData(12, 1, 8, 2, 6, 8, 2, 4, 3), // ペル
     };
 
     /// <summary>敵成長率％</summary>
     public static readonly ParameterData[] Prm_EnemyGrow = new ParameterData[]
     {
-        new ParameterData(50, 30, 1, 45, 35, 40, 25, 10, 0), //グリーンスライム
+        new ParameterData(75, 30, 5, 20, 15, 30, 40, 5, 0),  // グリーンスライム
+        new ParameterData(90, 20, 5, 35, 25, 15, 20, 10, 0), // スケルトン（剣）
+        new ParameterData(90, 25, 5, 30, 20, 10, 30, 10, 0), // スケルトン（槍）
+        new ParameterData(90, 35, 5, 35, 15, 10, 20, 10, 0), // スケルトン（斧）
+        new ParameterData(75, 25, 5, 40, 35, 10, 20, 10, 0), // スケルトン（弓）
+        new ParameterData(60, 5, 40, 10, 30, 40, 10, 20, 0), // ペル
+    };
+
+    /// <summary>
+    /// 敵専用その他設定
+    /// </summary>
+    public struct EnemyOtherData
+    {
+        /// <summary>使用武器タイプ</summary>
+        public ItemType defaultWeaponType;
+        /// <summary>表示色</summary>
+        public Color modelColor;
+
+        public EnemyOtherData(ItemType weapon, Color? col = null)
+        {
+            defaultWeaponType = weapon;
+            modelColor = col.HasValue ? col.Value : Color.white;
+        }
+    }
+
+    public static readonly EnemyOtherData[] Prm_EnemyOther = new EnemyOtherData[]
+    {
+        new EnemyOtherData(ItemType.None, new Color(0.4f, 1f, 0.4f)),
+        new EnemyOtherData(ItemType.Sword),
+        new EnemyOtherData(ItemType.Spear),
+        new EnemyOtherData(ItemType.Axe),
+        new EnemyOtherData(ItemType.Arrow),
+        new EnemyOtherData(ItemType.None),
     };
 
     #endregion
@@ -390,21 +428,11 @@ public class GameDatabase
     {
         "グリーンスライム",
         "スケルトン",
+        "スケルトン",
+        "スケルトン",
+        "スケルトン",
+        "ペル",
     };
-
-    /// <summary>
-    /// 敵モデルの色
-    /// </summary>
-    /// <param name="eid"></param>
-    /// <returns></returns>
-    public static Color GetEnemyColor(Constant.EnemyID eid)
-    {
-        return eid switch
-        {
-            Constant.EnemyID.GreenSlime => new Color(0.3f, 1f, 0.3f), //グリーンスライム
-            _ => Color.white, // ほとんどはそのまま
-        };
-    }
 
     #endregion
 
@@ -579,6 +607,8 @@ public class GameDatabase
     /// <returns></returns>
     public static ItemID CalcRandomItem(int lv, bool boss, bool weaponOnly = true, ItemType type = ItemType.None, int outRate = 0)
     {
+        if (Util.RandomCheck(outRate)) return ItemID.FreeHand;
+
         var koho = new List<ItemID>();
         var maxRarelity = 0;
         var bossRate = boss ? 3 : 1; // ボスはレアリティ下がる＝レア高いものが出やすい

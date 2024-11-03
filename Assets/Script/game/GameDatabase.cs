@@ -42,13 +42,49 @@ public class GameDatabase
 
     /// <summary>プレイヤー成長率％</summary>
     public static readonly ParameterData[] Prm_PlayerGrow = new ParameterData[] {
-        new ParameterData(70, 120, 0, 45, 35, 40, 25, 10, 0),
+        new ParameterData(70, 130, 0, 45, 35, 40, 25, 10, 0),
         new ParameterData(100, 50, 5, 30, 25, 35, 70, 50, 0),
         new ParameterData(85, 60, 5, 60, 45, 30, 40, 25, 0),
         new ParameterData(70, 35, 20, 60, 75, 35, 20, 30, 0),
         new ParameterData(45, 15, 80, 35, 30, 60, 15, 70, 0),
         new ParameterData(75, 50, 25, 50, 50, 45, 30, 30, 0),
     };
+
+    /// <summary>
+    /// プレイヤー成長判定結果を取得
+    /// </summary>
+    /// <param name="playerID"></param>
+    /// <returns></returns>
+    public static ParameterData Prm_PlayerGrow_GetCalced(Constant.PlayerID playerID)
+    {
+        var ret = new ParameterData();
+        var rate = Prm_PlayerGrow[(int)playerID];
+        ret.maxHp = Prm_CalcGrowUp(rate.maxHp);
+        ret.atk = Prm_CalcGrowUp(rate.atk);
+        ret.mag = Prm_CalcGrowUp(rate.mag);
+        ret.tec = Prm_CalcGrowUp(rate.tec);
+        ret.spd = Prm_CalcGrowUp(rate.spd);
+        ret.luk = Prm_CalcGrowUp(rate.luk);
+        ret.def = Prm_CalcGrowUp(rate.def);
+        ret.mdf = Prm_CalcGrowUp(rate.mdf);
+
+        return ret;
+    }
+
+    /// <summary>
+    /// 上昇判定
+    /// </summary>
+    /// <param name="rate"></param>
+    /// <returns></returns>
+    private static int Prm_CalcGrowUp(int rate)
+    {
+        // 100以上は必ず上がる
+        var upBase = rate / 100;
+        rate = rate % 100;
+        if (rate <= 0) return upBase;
+
+        return upBase + (Util.RandomCheck(rate) ? 1 : 0);
+    }
 
     /// <summary>クラスチェンジ成長値_ドロシー</summary>
     public static readonly ParameterData[] Prm_ClassChangeGrow_Drows = new ParameterData[] {

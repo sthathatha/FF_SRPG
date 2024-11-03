@@ -72,8 +72,8 @@ public class SoundManager : MonoBehaviour
     /// <param name="startTime">再生開始時間</param>
     public void PlaySE(AudioClip se, float startTime = 0f)
     {
-        var seObj = GameObject.Instantiate(seDummy);
-        seObj.transform.SetParent(this.transform);
+        var seObj = Instantiate(seDummy, transform, false);
+        seObj.gameObject.SetActive(true);
 
         var seSource = seObj.GetComponent<AudioSource>();
         seSource.clip = se;
@@ -91,8 +91,8 @@ public class SoundManager : MonoBehaviour
     /// <returns>呼び出し側で制御する用オブジェクト</returns>
     public AudioSource PlaySELoop(AudioClip se, float startTime = 0f)
     {
-        var seObj = GameObject.Instantiate(seDummy);
-        seObj.transform.SetParent(this.transform);
+        var seObj = Instantiate(seDummy, transform, false);
+        seObj.gameObject.SetActive(true);
 
         var seSource = seObj.GetComponent<AudioSource>();
         seSource.clip = se;

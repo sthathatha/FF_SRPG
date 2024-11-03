@@ -60,6 +60,9 @@ public class ManagerSceneScript : MonoBehaviour
     /// <summary>ステータス詳細画面</summary>
     public StatusScreen statusScreen = null;
 
+    /// <summary>ステータスアップUI</summary>
+    public StatusUpUI statusUpUI = null;
+
     /// <summary>ターン表示</summary>
     public TurnDisplay turnDisplay = null;
 
@@ -71,6 +74,12 @@ public class ManagerSceneScript : MonoBehaviour
 
     /// <summary>戦闘予測UI</summary>
     public BattleEstimateUI battleEstimateUI = null;
+
+    /// <summary>1行メッセージUI</summary>
+    public LineMessageUI lineMessageUI = null;
+
+    /// <summary>クラスチェンジUI</summary>
+    public ClassChangeUI classChangeUI = null;
 
     /// <summary>フェーダ</summary>
     public CanvasGroup fader = null;

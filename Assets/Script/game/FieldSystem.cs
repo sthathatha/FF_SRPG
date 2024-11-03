@@ -478,6 +478,28 @@ public class FieldSystem : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// ƒLƒƒƒ‰€–Sˆ—
+    /// </summary>
+    /// <param name="chr"></param>
+    public void DeleteCharacter(CharacterBase chr)
+    {
+        if (chr.IsPlayer())
+        {
+            var pc = chr as PlayerCharacter;
+            players.Remove(pc);
+
+            // •œŠˆŠÔ‚ğİ’è
+            GameParameter.Prm_Get(pc.playerID).RestBattle = 3;
+        }
+        else
+        {
+            enemies.Remove(chr as EnemyCharacter);
+        }
+
+        Destroy(chr.gameObject);
+    }
+
     #endregion
 
     #region ˆÊ’uŒŸõ

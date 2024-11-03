@@ -37,6 +37,24 @@ public class GameParameter
     }
 
     /// <summary>
+    /// フィールドデータから保存
+    /// </summary>
+    /// <param name="playerID"></param>
+    /// <param name="prm"></param>
+    public static void Prm_SetFieldParam(Constant.PlayerID playerID, FieldCharacterParameter prm)
+    {
+        (playerID switch
+        {
+            Constant.PlayerID.Drows => Prm_Drows,
+            Constant.PlayerID.Eraps => Prm_Eraps,
+            Constant.PlayerID.Exa => Prm_Exa,
+            Constant.PlayerID.Worra => Prm_Worra,
+            Constant.PlayerID.Koob => Prm_Koob,
+            _ => Prm_You,
+        }).ReadFromFieldParam(prm);
+    }
+
+    /// <summary>
     /// セーブデータ内プレイヤーキャラパラメータ
     /// </summary>
     public class PlayerSaveParameter
@@ -89,6 +107,25 @@ public class GameParameter
             ClassID = Constant.ClassID.Base;
             RestBattle = 0;
             Skills.Clear();
+        }
+
+        /// <summary>
+        /// フィールドパラメータからセット
+        /// </summary>
+        /// <param name="param"></param>
+        public void ReadFromFieldParam(FieldCharacterParameter param)
+        {
+            Lv = param.Lv;
+            Exp = param.Exp;
+            MaxHP = param.MaxHP;
+            Atk = param.Atk;
+            Mag = param.Mag;
+            Tec = param.Tec;
+            Spd = param.Spd;
+            Luk = param.Luk;
+            Def = param.Def;
+            Mdf = param.Mdf;
+            Move = param.Move;
         }
 
         /// <summary>
@@ -225,20 +262,21 @@ public class GameParameter
         public void Init()
         {
             haveItemList.Clear();
-            haveItemList.Add(new HaveItemData(GameDatabase.ItemID.Sword1));
-            haveItemList.Add(new HaveItemData(GameDatabase.ItemID.Spear1));
-            haveItemList.Add(new HaveItemData(GameDatabase.ItemID.Axe1));
-            haveItemList.Add(new HaveItemData(GameDatabase.ItemID.Arrow1));
-            haveItemList.Add(new HaveItemData(GameDatabase.ItemID.Book1));
-            haveItemList.Add(new HaveItemData(GameDatabase.ItemID.Rod1));
-            haveItemList.Add(new HaveItemData(GameDatabase.ItemID.Item1));
+            AddItem(GameDatabase.ItemID.Sword1);
+            AddItem(GameDatabase.ItemID.Spear1);
+            AddItem(GameDatabase.ItemID.Axe1);
+            AddItem(GameDatabase.ItemID.Arrow1);
+            AddItem(GameDatabase.ItemID.Book1);
+            AddItem(GameDatabase.ItemID.Rod1);
+            AddItem(GameDatabase.ItemID.Item1);
+            AddItem(GameDatabase.ItemID.Arrow3);
 
-            equip_Drows = 0;
-            equip_Eraps = 1;
-            equip_Exa = 2;
-            equip_Worra = 3;
-            equip_Koob = 4;
-            equip_You = 0;
+            equip_Drows = GetUsableEquip(Constant.PlayerID.Drows);
+            equip_Eraps = GetUsableEquip(Constant.PlayerID.Eraps);
+            equip_Exa = GetUsableEquip(Constant.PlayerID.Exa);
+            equip_Worra = GetUsableEquip(Constant.PlayerID.Worra);
+            equip_Koob = GetUsableEquip(Constant.PlayerID.Koob);
+            equip_You = GetUsableEquip(Constant.PlayerID.You);
         }
 
         /// <summary>
@@ -363,6 +401,15 @@ public class GameParameter
             else if (idx < equip_Koob) equip_Koob--;
             if (idx == equip_You) equip_You = GetUsableEquip(Constant.PlayerID.You);
             else if (idx < equip_You) equip_You--;
+        }
+
+        /// <summary>
+        /// アイテム入手
+        /// </summary>
+        /// <param name="itemID"></param>
+        public void AddItem(GameDatabase.ItemID itemID)
+        {
+            haveItemList.Add(new HaveItemData(itemID));
         }
 
         /// <summary>
@@ -598,10 +645,10 @@ public class GameParameter
         // 以降は防御側の何％プラスかで判定
         var atkRate = atkSpd * 100 / defSpd - 100;
 
-        // 20%あれば２回、以降80％、140%と60%ずつ追加
+        // 20%あれば２回、以降120％、220%と100%ずつ追加
         if (atkRate < 20) return 1;
         atkRate -= 20;
-        return 2 + atkRate / 60;
+        return 2 + atkRate / 100;
     }
 
     /// <summary>

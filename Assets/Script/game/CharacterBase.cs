@@ -125,5 +125,51 @@ public class CharacterBase : MonoBehaviour
             hpGauge.AnimHP(param.HP, param.MaxHP);
     }
 
+    /// <summary>
+    /// 攻撃アニメーション
+    /// </summary>
+    /// <param name="dist"></param>
+    /// <param name="time"></param>
+    /// <returns></returns>
+    public IEnumerator AttackAnim(Vector3 dist, float time = 0.3f)
+    {
+        var basePos = transform.localPosition;
+        var addP = new DeltaVector3();
+        addP.Set(Vector3.zero);
+        addP.MoveTo(dist.normalized * 20f, time / 2f, DeltaFloat.MoveType.DECEL);
+        while (addP.IsActive())
+        {
+            yield return null;
+            addP.Update(Time.deltaTime);
+            transform.localPosition = basePos + addP.Get();
+        }
+        addP.MoveTo(Vector3.zero, time / 2f, DeltaFloat.MoveType.ACCEL);
+        while (addP.IsActive())
+        {
+            yield return null;
+            addP.Update(Time.deltaTime);
+            transform.localPosition = basePos + addP.Get();
+        }
+    }
+
+    /// <summary>
+    /// 死亡アニメーション
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerator DeathAnim()
+    {
+        var model = anim.GetComponent<SpriteRenderer>();
+        var col = model.color;
+        var a = new DeltaFloat();
+        a.Set(1f);
+        a.MoveTo(0f, 0.5f, DeltaFloat.MoveType.LINE);
+        while (a.IsActive())
+        {
+            yield return null;
+            a.Update(Time.deltaTime);
+            model.color = new Color(col.r, col.g, col.b, a.Get());
+        }
+    }
+
     #endregion
 }

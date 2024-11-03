@@ -29,10 +29,12 @@ public class StatusScreen : MonoBehaviour
     public Image dropWindowBG;
     public Image skillWindowBG;
     public Image statusWindowBG;
+    public Image weaponRateWindowBG;
 
     // 表示切替用
     public GameObject weaponWindow;
     public GameObject dropWindow;
+    public GameObject weaponRateWindow;
     public GameObject skillWindow;
 
     // 値表示用
@@ -48,6 +50,18 @@ public class StatusScreen : MonoBehaviour
     public TMP_Text txt_def;
     public TMP_Text txt_mdf;
     public TMP_Text txt_move;
+
+    public TMP_Text txt_rate_sword;
+    public TMP_Text txt_rate_spear;
+    public TMP_Text txt_rate_axe;
+    public TMP_Text txt_rate_arrow;
+    public TMP_Text txt_rate_book;
+    public TMP_Text txt_rate_rod;
+
+    public Image icon_weapon;
+    public TMP_Text txt_weapon;
+    public Image icon_dropItem;
+    public TMP_Text txt_dropItem;
 
     //todo: スキル表示用
 
@@ -114,10 +128,21 @@ public class StatusScreen : MonoBehaviour
             txt_exp.SetText(saveParam.Exp.ToString());
 
         classWindowBG.color = PLAYER_COLOR;
-        weaponWindowBG.color = PLAYER_COLOR;
-        dropWindowBG.color = PLAYER_COLOR;
         skillWindowBG.color = PLAYER_COLOR;
         statusWindowBG.color = PLAYER_COLOR;
+        weaponRateWindowBG.color = PLAYER_COLOR;
+        weaponWindow.SetActive(false);
+        dropWindow.SetActive(false);
+        weaponRateWindow.SetActive(true);
+
+        // 武器熟練度
+        var weaponRate = GameDatabase.Prm_ClassWeaponRate_Get(chr.playerID, saveParam.ClassID);
+        txt_rate_sword.SetText(weaponRate.sword.ToString());
+        txt_rate_spear.SetText(weaponRate.spear.ToString());
+        txt_rate_axe.SetText(weaponRate.axe.ToString());
+        txt_rate_arrow.SetText(weaponRate.arrow.ToString());
+        txt_rate_book.SetText(weaponRate.book.ToString());
+        txt_rate_rod.SetText(weaponRate.rod.ToString());
 
         faceImage.sprite = ManagerSceneScript.GetInstance().generalResources.GetFaceIconP(chr.playerID);
     }
@@ -128,6 +153,8 @@ public class StatusScreen : MonoBehaviour
     /// <param name="chr"></param>
     public void DispEnemyParameter(EnemyCharacter chr)
     {
+        var manager = ManagerSceneScript.GetInstance();
+
         txt_className.SetText(chr.GetEnemyName());
         txt_exp.SetText("--");
 
@@ -136,8 +163,28 @@ public class StatusScreen : MonoBehaviour
         dropWindowBG.color = ENEMY_COLOR;
         skillWindowBG.color = ENEMY_COLOR;
         statusWindowBG.color = ENEMY_COLOR;
+        weaponWindow.SetActive(true);
+        dropWindow.SetActive(true);
+        weaponRateWindow.SetActive(false);
 
-        faceImage.sprite = ManagerSceneScript.GetInstance().generalResources.GetFaceIconE(chr.enemyID);
+        // 所持武器
+        var weaponData = GameDatabase.ItemDataList[(int)chr.weaponID];
+        var dropData = GameDatabase.ItemDataList[(int)chr.dropID];
+        icon_weapon.sprite = manager.generalResources.GetItemIcon(weaponData.iType);
+        txt_weapon.SetText(weaponData.name);
+        if (chr.dropID == GameDatabase.ItemID.FreeHand)
+        {
+            icon_dropItem.gameObject.SetActive(false);
+            txt_dropItem.SetText("--");
+        }
+        else
+        {
+            icon_dropItem.gameObject.SetActive(true);
+            icon_dropItem.sprite = manager.generalResources.GetItemIcon(dropData.iType);
+            txt_dropItem.SetText(dropData.name);
+        }
+
+        faceImage.sprite = manager.generalResources.GetFaceIconE(chr.enemyID);
     }
 
     #endregion

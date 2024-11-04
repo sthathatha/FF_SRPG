@@ -87,6 +87,8 @@ public class Global
             //system.clearFlag = 0;
         }
 
+        #region ゲームデータ
+
         /// <summary>
         /// ゲームデータをセーブ
         /// </summary>
@@ -124,6 +126,16 @@ public class Global
             //gameData[F122System.F122_PIERRE_PHASE] = "2";
             //gameData[F143System.MENDERU_WIN_FLG] = "1";
             //gameData[F153System.AMI_WIN_FLG] = "1";
+        }
+
+        /// <summary>
+        /// データ削除
+        /// </summary>
+        public void DeleteGameData()
+        {
+            PlayerPrefs.DeleteKey("gameData");
+            PlayerPrefs.Save();
+            InitGameData();
         }
 
         /// <summary>
@@ -184,6 +196,10 @@ public class Global
             }
         }
 
+        #endregion
+
+        #region システムデータ
+
         /// <summary>
         /// システムデータをセーブ
         /// </summary>
@@ -233,6 +249,8 @@ public class Global
                 gameData[pair[0]] = pair[1];
             }
         }
+
+        #endregion
     }
 
     /// <summary>

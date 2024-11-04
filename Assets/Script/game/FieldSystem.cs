@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEditor.Experimental;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -76,6 +77,8 @@ public class FieldSystem : MonoBehaviour
     /// <summary>戦闘内のターン数</summary>
     public int Prm_BattleTurn { get; set; } = 0;
 
+    public bool Prm_EnableRanking { get; set; } = true;
+
     #endregion
 
     #region 既定
@@ -91,6 +94,76 @@ public class FieldSystem : MonoBehaviour
         colLine_dummy.gameObject.SetActive(false);
 
         InitLines();
+    }
+
+    #endregion
+
+    #region セーブ処理
+
+    private const string SAVE_PLAYERDATA = "pChrData";
+    private const string SAVE_ENEMYDATA = "eChrData";
+    private const string SAVE_TURN = "turnNum";
+    private const string SAVE_FLOOR = "floorNum";
+
+    private const string SAVE_ENABLERANKING = "enbRank";
+    private const string SAVE_LOADCOUNT = "loadCount";
+
+    /// <summary>
+    /// セーブ
+    /// </summary>
+    public void SaveField()
+    {
+        // 直接起動時セーブしない
+        if (ManagerSceneScript.isDebugLoad) return;
+
+        var save = Global.GetSaveData();
+
+        save.SetGameData(SAVE_PLAYERDATA, string.Join('P', players.Select(p => p.ToSaveString())));
+        save.SetGameData(SAVE_ENEMYDATA, string.Join('E', enemies.Select(e => e.ToSaveString())));
+        save.SetGameData(SAVE_FLOOR, Prm_BattleFloor);
+        save.SetGameData(SAVE_TURN, Prm_BattleTurn);
+        save.SetGameData(SAVE_ENABLERANKING, Prm_EnableRanking ? 1 : 0);
+        save.SetGameData(SAVE_LOADCOUNT, 0);
+
+        GameParameter.Save();
+        save.SaveGameData();
+    }
+
+    /// <summary>
+    /// ロード
+    /// </summary>
+    public void LoadField()
+    {
+        var save = Global.GetSaveData();
+        save.LoadGameData();
+
+        GameParameter.Load();
+        Prm_EnableRanking = save.GetGameDataInt(SAVE_ENABLERANKING) == 1;
+        var ldCnt = save.GetGameDataInt(SAVE_LOADCOUNT);
+        if (ldCnt > 0) Prm_EnableRanking = false;
+        save.SetGameData(SAVE_LOADCOUNT, ldCnt + 1);
+        save.SaveGameData();
+
+        Prm_BattleFloor = save.GetGameDataInt(SAVE_FLOOR);
+        Prm_BattleTurn = save.GetGameDataInt(SAVE_TURN);
+        var pdata = save.GetGameDataString(SAVE_PLAYERDATA);
+        players.Clear();
+        if (!string.IsNullOrEmpty(pdata))
+        {
+            foreach (var p in pdata.Split(new char[] { 'P' }))
+            {
+                CreatePlayer(p);
+            }
+        }
+        var edata = save.GetGameDataString(SAVE_ENEMYDATA);
+        enemies.Clear();
+        if (!string.IsNullOrEmpty(edata))
+        {
+            foreach (var e in edata.Split(new char[] { 'E' }))
+            {
+                CreateEnemy(e);
+            }
+        }
     }
 
     #endregion
@@ -417,13 +490,14 @@ public class FieldSystem : MonoBehaviour
     {
         if (Global.GetTemporaryData().isLoadGame)
         {
-            //todo:セーブデータから作成
-
+            // セーブデータから作成
+            LoadField();
         }
         else
         {
             Prm_BattleFloor = 1;
             Prm_BattleTurn = 0;
+            Prm_EnableRanking = true;
 
             // 6人初期化
             GameParameter.Prm_Drows.Init(Constant.PlayerID.Drows);
@@ -570,6 +644,34 @@ public class FieldSystem : MonoBehaviour
         p.SetCharacter(pid);
         players.Add(p);
         return p;
+    }
+
+    /// <summary>
+    /// プレイヤーキャラ作成（セーブデータから）
+    /// </summary>
+    /// <param name="str"></param>
+    /// <returns></returns>
+    private PlayerCharacter CreatePlayer(string str)
+    {
+        var p = Instantiate(player_dummy, Character_parent, false);
+        p.gameObject.SetActive(true);
+        p.FromSaveString(str);
+        players.Add(p);
+        return p;
+    }
+
+    /// <summary>
+    /// 敵キャラクター作成（セーブデータから）
+    /// </summary>
+    /// <param name="str"></param>
+    /// <returns></returns>
+    private EnemyCharacter CreateEnemy(string str)
+    {
+        var e = Instantiate(enemy_dummy, Character_parent, false);
+        e.gameObject.SetActive(true);
+        e.FromSaveString(str);
+        enemies.Add(e);
+        return e;
     }
 
     /// <summary>

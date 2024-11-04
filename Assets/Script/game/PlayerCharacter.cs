@@ -19,6 +19,31 @@ public class PlayerCharacter : CharacterBase
 
     #endregion
 
+    #region セーブ
+
+    /// <summary>
+    /// セーブ
+    /// </summary>
+    /// <returns></returns>
+    public override string ToSaveString()
+    {
+        return $"{base.ToSaveString()}p{(int)playerID}";
+    }
+
+    /// <summary>
+    /// ロード
+    /// </summary>
+    /// <param name="str"></param>
+    public override void FromSaveString(string str)
+    {
+        var spl = str.Split("p");
+        SetCharacter((Constant.PlayerID)int.Parse(spl[1]));
+
+        base.FromSaveString(spl[0]);
+    }
+
+    #endregion
+
     #region パラメータ
 
     /// <summary>プレイヤーフラグ</summary>

@@ -558,7 +558,7 @@ public class GameDatabase
 
         new(ItemType.Sword, "妙法村正",         200, 30, 16, 120, 1, 1, 60),
         new(ItemType.Spear, "ディスラプター",   200, 30, 27, 65, 1, 3, 0),
-        new(ItemType.Axe, "シルヴァームーン",   200, 30, 22, 100, 1, 1, 20),
+        new(ItemType.Axe, "タンムーズ",         200, 30, 22, 100, 1, 1, 20),
         new(ItemType.Arrow, "マルドゥーク",     200, 30, 15, 100, 2, 6, 0),
         new(ItemType.Book, "ネクロノミコン",    200, 30, 36, 40, 1, 2, 0),
 

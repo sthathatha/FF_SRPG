@@ -11,7 +11,7 @@ using UnityEngine.UI;
 public class ManagerSceneScript : MonoBehaviour
 {
     /// <summary>デバッグ用</summary>
-    public static Boolean isDebugLoad = false;
+    public static bool isDebugLoad = false;
 
     #region 定数
     /// <summary>フェード時間</summary>
@@ -133,8 +133,7 @@ public class ManagerSceneScript : MonoBehaviour
         if (!isDebugLoad)
         {
             //初期シーンロード
-            //SceneManager.LoadSceneAsync("TitleScene", LoadSceneMode.Additive);
-            SceneManager.LoadSceneAsync("GameScene", LoadSceneMode.Additive);
+            SceneManager.LoadSceneAsync("TitleScene", LoadSceneMode.Additive);
         }
         else
         {

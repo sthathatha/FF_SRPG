@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Constant;
 
 /// <summary>
 /// 敵キャラクター
@@ -23,6 +24,35 @@ public class EnemyCharacter : CharacterBase
 
     /// <summary>ボスフラグ</summary>
     public bool isBoss { get; private set; } = false;
+
+    #endregion
+
+    #region セーブ
+
+    /// <summary>
+    /// セーブ
+    /// </summary>
+    /// <returns></returns>
+    public override string ToSaveString()
+    {
+        return $"{base.ToSaveString()}e{(int)enemyID}e{(int)weaponID}e{(int)dropID}e{(isBoss ? 1 : 0)}";
+    }
+
+    /// <summary>
+    /// ロード
+    /// </summary>
+    /// <param name="str"></param>
+    public override void FromSaveString(string str)
+    {
+        var spl = str.Split("e");
+
+        SetCharacter((Constant.EnemyID)int.Parse(spl[1]));
+        weaponID = (GameDatabase.ItemID)int.Parse(spl[2]);
+        dropID = (GameDatabase.ItemID)int.Parse(spl[3]);
+        isBoss = spl[4] == "1";
+
+        base.FromSaveString(spl[0]);
+    }
 
     #endregion
 

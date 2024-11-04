@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -8,6 +9,56 @@ using UnityEngine;
 /// </summary>
 public class GameParameter
 {
+    #region セーブ処理
+
+    // プレイヤーパラメータ
+    private const string SAVE_PARAM_DROWS = "paramDrows";
+    private const string SAVE_PARAM_ERAPS = "paramEraps";
+    private const string SAVE_PARAM_EXA = "paramExa";
+    private const string SAVE_PARAM_WORRA = "paramWorra";
+    private const string SAVE_PARAM_KOOB = "paramKoob";
+    private const string SAVE_PARAM_YOU = "paramYou";
+
+    // OtherData
+    private const string SAVE_ITEM_LIST = "haveItemList";
+    private const string SAVE_EQ_DROWS = "eqDrows";
+    private const string SAVE_EQ_ERAPS = "eqEraps";
+    private const string SAVE_EQ_EXA = "eqExa";
+    private const string SAVE_EQ_WORRA = "eqWorra";
+    private const string SAVE_EQ_KOOB = "eqKoob";
+    private const string SAVE_EQ_YOU = "eqYou";
+
+    /// <summary>
+    /// セーブ
+    /// </summary>
+    public static void Save()
+    {
+        var save = Global.GetSaveData();
+        save.SetGameData(SAVE_PARAM_DROWS, Prm_Drows.ToSaveString());
+        save.SetGameData(SAVE_PARAM_ERAPS, Prm_Eraps.ToSaveString());
+        save.SetGameData(SAVE_PARAM_EXA, Prm_Exa.ToSaveString());
+        save.SetGameData(SAVE_PARAM_WORRA, Prm_Worra.ToSaveString());
+        save.SetGameData(SAVE_PARAM_KOOB, Prm_Koob.ToSaveString());
+        save.SetGameData(SAVE_PARAM_YOU, Prm_You.ToSaveString());
+        otherData.Save();
+    }
+
+    /// <summary>
+    /// ロード
+    /// </summary>
+    public static void Load()
+    {
+        var save = Global.GetSaveData();
+        otherData.Load();
+        Prm_Drows.ReadString(save.GetGameDataString(SAVE_PARAM_DROWS));
+        Prm_Eraps.ReadString(save.GetGameDataString(SAVE_PARAM_ERAPS));
+        Prm_Exa.ReadString(save.GetGameDataString(SAVE_PARAM_EXA));
+        Prm_Worra.ReadString(save.GetGameDataString(SAVE_PARAM_WORRA));
+        Prm_Koob.ReadString(save.GetGameDataString(SAVE_PARAM_KOOB));
+        Prm_You.ReadString(save.GetGameDataString(SAVE_PARAM_YOU));
+    }
+
+    #endregion
 
     #region プレイヤーセーブデータ
 
@@ -134,7 +185,8 @@ public class GameParameter
         /// <returns></returns>
         public string ToSaveString()
         {
-            return "";
+            var sklStr = string.Join('_', Skills);
+            return $"{Lv},{Exp},{MaxHP},{Atk},{Mag},{Tec},{Spd},{Luk},{Def},{Mdf},{Move},{ReviveCount},{(int)ClassID},{RestBattle},{sklStr}";
         }
 
         /// <summary>
@@ -143,6 +195,30 @@ public class GameParameter
         /// <param name="data"></param>
         public void ReadString(string data)
         {
+            var spl = data.Split(",");
+            Lv = int.Parse(spl[0]);
+            Exp = int.Parse(spl[1]);
+            MaxHP = int.Parse(spl[2]);
+            Atk = int.Parse(spl[3]);
+            Mag = int.Parse(spl[4]);
+            Tec = int.Parse(spl[5]);
+            Spd = int.Parse(spl[6]);
+            Luk = int.Parse(spl[7]);
+            Def = int.Parse(spl[8]);
+            Mdf = int.Parse(spl[9]);
+            Move = int.Parse(spl[10]);
+            ReviveCount = int.Parse(spl[11]);
+            ClassID = (Constant.ClassID)int.Parse(spl[12]);
+            RestBattle = int.Parse(spl[13]);
+            Skills.Clear();
+            if (!string.IsNullOrEmpty(spl[14]))
+            {
+                var skillSpl = spl[14].Split('_');
+                foreach (var skill in skillSpl)
+                {
+                    Skills.Add(int.Parse(skill));
+                }
+            }
         }
     }
 
@@ -233,7 +309,7 @@ public class GameParameter
         /// <returns></returns>
         public string ToSaveString()
         {
-            return "";
+            return $"{Lv},{HP},{MaxHP},{Exp},{Atk},{Mag},{Tec},{Spd},{Luk},{Def},{Mdf},{Move}";
         }
 
         /// <summary>
@@ -242,6 +318,19 @@ public class GameParameter
         /// <param name="data"></param>
         public void ReadString(string data)
         {
+            var spl = data.Split(',');
+            Lv = int.Parse(spl[0]);
+            HP = int.Parse(spl[1]);
+            MaxHP = int.Parse(spl[2]);
+            Exp = int.Parse(spl[3]);
+            Atk = int.Parse(spl[4]);
+            Mag = int.Parse(spl[5]);
+            Tec = int.Parse(spl[6]);
+            Spd = int.Parse(spl[7]);
+            Luk = int.Parse(spl[8]);
+            Def = int.Parse(spl[9]);
+            Mdf = int.Parse(spl[10]);
+            Move = int.Parse(spl[11]);
         }
     }
 
@@ -283,7 +372,16 @@ public class GameParameter
         /// </summary>
         public void Save()
         {
+            var save = Global.GetSaveData();
+            var itemListString = string.Join('X', haveItemList.Select(i => i.ToSaveString()));
+            save.SetGameData(SAVE_ITEM_LIST, itemListString);
 
+            save.SetGameData(SAVE_EQ_DROWS, equip_Drows);
+            save.SetGameData(SAVE_EQ_ERAPS, equip_Eraps);
+            save.SetGameData(SAVE_EQ_EXA, equip_Exa);
+            save.SetGameData(SAVE_EQ_WORRA, equip_Worra);
+            save.SetGameData(SAVE_EQ_KOOB, equip_Koob);
+            save.SetGameData(SAVE_EQ_YOU, equip_You);
         }
 
         /// <summary>
@@ -291,7 +389,24 @@ public class GameParameter
         /// </summary>
         public void Load()
         {
+            var save = Global.GetSaveData();
+            var itemList = save.GetGameDataString(SAVE_ITEM_LIST).Split('X');
 
+            haveItemList.Clear();
+            if (!string.IsNullOrEmpty(itemList[0]))
+            {
+                foreach (var item in itemList)
+                {
+                    haveItemList.Add(HaveItemData.FromString(item));
+                }
+            }
+
+            equip_Drows = save.GetGameDataInt(SAVE_EQ_DROWS);
+            equip_Eraps = save.GetGameDataInt(SAVE_EQ_ERAPS);
+            equip_Exa = save.GetGameDataInt(SAVE_EQ_EXA);
+            equip_Worra = save.GetGameDataInt(SAVE_EQ_WORRA);
+            equip_Koob = save.GetGameDataInt(SAVE_EQ_KOOB);
+            equip_You = save.GetGameDataInt(SAVE_EQ_YOU);
         }
 
         #endregion
@@ -321,6 +436,28 @@ public class GameParameter
 
             /// <summary>アイテム詳細取得</summary>
             public GameDatabase.ItemData ItemData { get { return GameDatabase.ItemDataList[(int)id]; } }
+
+            /// <summary>
+            /// セーブ用string
+            /// </summary>
+            /// <returns></returns>
+            public string ToSaveString()
+            {
+                return $"{(int)id}-{useCount}";
+            }
+
+            /// <summary>
+            /// セーブ用stringから生成
+            /// </summary>
+            /// <param name="str"></param>
+            /// <returns></returns>
+            public static HaveItemData FromString(string str)
+            {
+                var values = str.Split("-");
+                var data = new HaveItemData((GameDatabase.ItemID)int.Parse(values[0]));
+                data.useCount = int.Parse(values[1]);
+                return data;
+            }
         }
 
         /// <summary>
@@ -534,7 +671,14 @@ public class GameParameter
         #region 反撃の射程判定
         var distV = atkChr.GetLocation() - defChr.GetLocation();
         var distance = Math.Abs(distV.x) + Math.Abs(distV.y);
-        var canCounter = distance >= d_weaponData.rangeMin && distance <= d_weaponData.rangeMax + d_rangePlus;
+        var canCounter = false;
+        // ドロシー以外の素手は反撃不可
+        if (defChr.IsPlayer() &&
+            d_weaponId == GameDatabase.ItemID.FreeHand &&
+            ((PlayerCharacter)defChr).playerID != Constant.PlayerID.Drows)
+            canCounter = false;
+        else
+            canCounter = distance >= d_weaponData.rangeMin && distance <= d_weaponData.rangeMax + d_rangePlus;
         #endregion
 
         #region 攻撃側パラメータ

@@ -71,8 +71,20 @@ public class GameSceneScript : MainScriptBase
     /// <returns></returns>
     private IEnumerator GameCoroutine()
     {
+        bool startGame = true;
         while (true)
         {
+            if (startGame)
+            {
+                //最初のみ行うこと　特に無い？
+            }
+            else
+            {
+                // 最初以外　セーブ
+                field.SaveField();
+            }
+            startGame = false;
+
             // ターン加算
             field.Prm_BattleTurn++;
 
@@ -394,7 +406,8 @@ public class GameSceneScript : MainScriptBase
         {
             var enm = field.GetActableChara(false)[0] as EnemyCharacter;
             var moveList = field.GetMovableLocations(enm)
-                .Where(l => field.GetCellCharacter(l.current) == null).ToList();
+                .Where(l => l.current == enm.GetLocation() || field.GetCellCharacter(l.current) == null)
+                .ToList();
             var attackableList = field.GetAttackableCharacters(enm, moveList);
             var atkAI = field.SelectAIAttack(enm, attackableList);
             if (atkAI == null)

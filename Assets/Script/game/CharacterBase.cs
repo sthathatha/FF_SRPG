@@ -33,6 +33,46 @@ public abstract class CharacterBase : MonoBehaviour
 
     #endregion
 
+    #region セーブ
+
+    private const string SAVE_SEPARATOR = "C";
+
+    /// <summary>
+    /// 文字列連結
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
+    protected string CreateConcatString(params string[] args)
+    {
+        return string.Join(SAVE_SEPARATOR, args);
+    }
+
+    /// <summary>
+    /// セーブデータ
+    /// </summary>
+    /// <returns></returns>
+    virtual public string ToSaveString()
+    {
+        return CreateConcatString(location.x.ToString(),
+                                    location.y.ToString(),
+                                    param.ToSaveString());
+    }
+
+    /// <summary>
+    /// ロード
+    /// </summary>
+    /// <param name="str"></param>
+    virtual public void FromSaveString(string str)
+    {
+        var spl = str.Split(SAVE_SEPARATOR);
+        var loc = new Vector2Int(int.Parse(spl[0]), int.Parse(spl[1]));
+        SetLocation(loc);
+        param.ReadString(spl[2]);
+        UpdateHP(true);
+    }
+
+    #endregion
+
     #region 位置
 
     /// <summary>

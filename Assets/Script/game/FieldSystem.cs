@@ -106,7 +106,7 @@ public class FieldSystem : MonoBehaviour
     private const string SAVE_FLOOR = "floorNum";
 
     private const string SAVE_ENABLERANKING = "enbRank";
-    private const string SAVE_LOADCOUNT = "loadCount";
+    private const string SAVE_LOADDISABLE = "loadDisable";
 
     /// <summary>
     /// セーブ
@@ -123,9 +123,24 @@ public class FieldSystem : MonoBehaviour
         save.SetGameData(SAVE_FLOOR, Prm_BattleFloor);
         save.SetGameData(SAVE_TURN, Prm_BattleTurn);
         save.SetGameData(SAVE_ENABLERANKING, Prm_EnableRanking ? 1 : 0);
-        save.SetGameData(SAVE_LOADCOUNT, 0);
+        save.SetGameData(SAVE_LOADDISABLE, 0);
 
         GameParameter.Save();
+        save.SaveGameData();
+    }
+
+    /// <summary>
+    /// ロード禁止フラグ
+    /// ターン開始時のSaveFieldにてフラグを下ろし、プレイヤー行動時に立てる
+    /// たった状態でロードするとランキング登録不可になる
+    /// </summary>
+    public void LoadDisableSet()
+    {
+        // すでに登録不可になっていたら負荷軽減のため無視
+        if (!Prm_EnableRanking) return;
+
+        var save = Global.GetSaveData();
+        save.SetGameData(SAVE_LOADDISABLE, 1);
         save.SaveGameData();
     }
 
@@ -139,9 +154,8 @@ public class FieldSystem : MonoBehaviour
 
         GameParameter.Load();
         Prm_EnableRanking = save.GetGameDataInt(SAVE_ENABLERANKING) == 1;
-        var ldCnt = save.GetGameDataInt(SAVE_LOADCOUNT);
+        var ldCnt = save.GetGameDataInt(SAVE_LOADDISABLE);
         if (ldCnt > 0) Prm_EnableRanking = false;
-        save.SetGameData(SAVE_LOADCOUNT, ldCnt + 1);
         save.SaveGameData();
 
         Prm_BattleFloor = save.GetGameDataInt(SAVE_FLOOR);
@@ -1054,7 +1068,7 @@ public class FieldSystem : MonoBehaviour
         foreach (var ai in attackable)
         {
             // 戦闘結果予測
-            var result = GameParameter.GetBattleParameter(own, ai.target);
+            var result = GameParameter.GetBattleParameter(own, ai.target, ai.moveHist.current);
             var aib = new AITargetResult() { tgt = ai, btl = result };
 
             // 一発で倒せるならnice

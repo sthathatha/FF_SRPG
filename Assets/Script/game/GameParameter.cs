@@ -588,10 +588,12 @@ public class GameParameter
     /// </summary>
     /// <param name="atkChr"></param>
     /// <param name="defChr"></param>
+    /// <param name="checkAtkPos">atkChrの座標を現在地以外で判定する場合指定</param>
     /// <returns></returns>
-    public static BattleParameter GetBattleParameter(CharacterBase atkChr, CharacterBase defChr)
+    public static BattleParameter GetBattleParameter(CharacterBase atkChr, CharacterBase defChr, Vector2Int? checkAtkPos = null)
     {
         var ret = new BattleParameter();
+        var atkLoc = checkAtkPos.HasValue ? checkAtkPos.Value : atkChr.GetLocation();
 
         #region 武器データ取得
         // 武器ID
@@ -669,7 +671,7 @@ public class GameParameter
         #endregion
 
         #region 反撃の射程判定
-        var distV = atkChr.GetLocation() - defChr.GetLocation();
+        var distV = atkLoc - defChr.GetLocation();
         var distance = Math.Abs(distV.x) + Math.Abs(distV.y);
         var canCounter = false;
         // ドロシー以外の素手は反撃不可

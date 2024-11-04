@@ -372,6 +372,9 @@ public class GameSceneScript : MainScriptBase
     /// <param name="pc"></param>
     private void PTurnSetActEnd(PlayerCharacter pc)
     {
+        // ロード禁止フラグセット
+        field.LoadDisableSet();
+
         // 敵がもう居なかったら終了しない
         if (field.GetEnemies().Count == 0)
         {
@@ -993,6 +996,9 @@ public class GameSceneScript : MainScriptBase
 
         // 左端じゃないキャラが居たら次行かない
         if (players.Any(p => p.GetLocation().x != 0)) return false;
+
+        // ボスが残っていたら次行かない
+        if (field.GetEnemies().Any(e => e.isBoss)) return false;
 
         // 全員左端
         return true;

@@ -305,25 +305,58 @@ public class GameDatabase
     {
         /// <summary>使用武器タイプ</summary>
         public ItemType defaultWeaponType;
+        /// <summary>レアリティ</summary>
+        public int rarelity;
         /// <summary>表示色</summary>
         public Color modelColor;
 
-        public EnemyOtherData(ItemType weapon, Color? col = null)
+        public EnemyOtherData(ItemType weapon, int rare, Color? col = null)
         {
             defaultWeaponType = weapon;
+            rarelity = rare;
             modelColor = col.HasValue ? col.Value : Color.white;
         }
     }
 
     public static readonly EnemyOtherData[] Prm_EnemyOther = new EnemyOtherData[]
     {
-        new EnemyOtherData(ItemType.None, new Color(0.4f, 1f, 0.4f)),
-        new EnemyOtherData(ItemType.Sword),
-        new EnemyOtherData(ItemType.Spear),
-        new EnemyOtherData(ItemType.Axe),
-        new EnemyOtherData(ItemType.Arrow),
-        new EnemyOtherData(ItemType.None),
+        new EnemyOtherData(ItemType.None, 1, new Color(0.4f, 1f, 0.4f)),
+        new EnemyOtherData(ItemType.Sword, 3),
+        new EnemyOtherData(ItemType.Spear, 4),
+        new EnemyOtherData(ItemType.Axe, 2),
+        new EnemyOtherData(ItemType.Arrow, 3),
+        new EnemyOtherData(ItemType.None, 5),
     };
+
+    /// <summary>
+    /// ランダム出現の敵を選択
+    /// </summary>
+    /// <param name="floor"></param>
+    /// <param name="isBoss"></param>
+    /// <returns></returns>
+    public static Constant.EnemyID CalcRandomEnemy(int floor, bool isBoss)
+    {
+        var koho = new List<Constant.EnemyID>();
+        for (var i = 0; i < (int)Constant.EnemyID.ENEMY_COUNT; ++i)
+        {
+            var data = Prm_EnemyOther[i];
+            if (data.rarelity < 0) continue;
+
+            // rarelityフロアまでは出現しない
+            if (data.rarelity > floor) continue;
+            // ボスは100以上
+            if (isBoss && data.rarelity <= 100) continue;
+
+            koho.Add((Constant.EnemyID)i);
+        }
+        if (koho.Count == 0) return Constant.EnemyID.GreenSlime;
+
+        // 候補からrarelityによって確率で判定
+        var kohoRarelity = koho.Select(id => floor - Prm_EnemyOther[(int)id].rarelity + 1).ToList();
+        var selIdx = SelectRateIndex(kohoRarelity);
+
+        return koho[selIdx];
+    }
 
     #endregion
 
@@ -437,6 +470,90 @@ public class GameDatabase
 
     #endregion
 
+    #region スキルデータベース
+
+    /// <summary>
+    /// スキルID
+    /// </summary>
+    public enum SkillID
+    {
+        Drows_FreeHand = 0,
+        Drows_WeaponBreak,
+        Drows_Tornaid,
+        Drows_WeaponSave,
+        Drows_Berserk,
+        Drows_Critical,
+        Eraps_ZOC,
+        Eraps_FirstSpeed,
+        Eraps_AllCounter,
+        Exa_Guard,
+        Exa_Command,
+        Exa_Lonely,
+        Worra_LongShot,
+        Worra_FastMove,
+        Worra_Avoid,
+        Koob_World,
+        Koob_Zenius,
+        Koob_Archemy,
+        You_FastAttack,
+        You_StrongAttack,
+        You_FastCounter,
+
+        SKILL_COUNT,
+    }
+
+    /// <summary>
+    /// スキルデータ
+    /// </summary>
+    public struct SkillData
+    {
+        /// <summary>説明文</summary>
+        public string detail;
+        /// <summary>習得プレイヤー</summary>
+        public Constant.PlayerID getPlayer;
+        /// <summary>習得クラス</summary>
+        public Constant.ClassID getClass;
+        /// <summary>習得レベル</summary>
+        public int getLevel;
+        /// <summary>転生で保持するフラグ</summary>
+        public bool canKeep;
+
+        public SkillData(Constant.PlayerID pid, Constant.ClassID cid, int lv, string det, bool keep = true)
+        {
+            detail = det; getPlayer = pid; getLevel = lv; getClass = cid; canKeep = keep;
+        }
+    }
+
+    /// <summary>
+    /// スキルデータ
+    /// </summary>
+    public static readonly SkillData[] SkillDataList = new SkillData[]
+    {
+        new (Constant.PlayerID.Drows, Constant.ClassID.Base, 1, "素手で攻撃できる"),
+        new (Constant.PlayerID.Drows, Constant.ClassID.Base, 1, "武器の消費量が2倍になる"),
+        new (Constant.PlayerID.Drows, Constant.ClassID.A2, 10, "一撃で敵を倒した時、再行動する"),
+        new (Constant.PlayerID.Drows, Constant.ClassID.AB, 10, "自分から攻撃する時は武器が消耗しない"),
+        new (Constant.PlayerID.Drows, Constant.ClassID.B2, 1, "近くに敵が居ると自動的に攻撃する(継承不可)", false),
+        new (Constant.PlayerID.Drows, Constant.ClassID.B2, 1, "必殺率+30"),
+        new (Constant.PlayerID.Eraps, Constant.ClassID.A2, 10, "敵は隣接マスを通過できない"),
+        new (Constant.PlayerID.Eraps, Constant.ClassID.AB, 10, "フロアの1ターン目のみ移動力+4"),
+        new (Constant.PlayerID.Eraps, Constant.ClassID.B2, 10, "距離に関係なく反撃できる"),
+        new (Constant.PlayerID.Exa, Constant.ClassID.A2, 10, "周囲2マスの味方の守備、魔防+10％"),
+        new (Constant.PlayerID.Exa, Constant.ClassID.AB, 10, "周囲2マスの味方の命中、回避、必殺+20"),
+        new (Constant.PlayerID.Exa, Constant.ClassID.B2, 10, "周囲2マスに味方が居ない時攻撃+10、防御+10"),
+        new (Constant.PlayerID.Worra, Constant.ClassID.A2, 10, "最大射程+1"),
+        new (Constant.PlayerID.Worra, Constant.ClassID.AB, 10, "移動+1"),
+        new (Constant.PlayerID.Worra, Constant.ClassID.B2, 10, "回避+30"),
+        new (Constant.PlayerID.Koob, Constant.ClassID.A2, 10, "必ず武器相性が有利になる"),
+        new (Constant.PlayerID.Koob, Constant.ClassID.AB, 10, "取得経験値+50％"),
+        new (Constant.PlayerID.Koob, Constant.ClassID.B2, 10, "武器を壊した時、稀に同種の武器を生成する"),
+        new (Constant.PlayerID.You, Constant.ClassID.A2, 10, "追撃する時、敵より先に行動する"),
+        new (Constant.PlayerID.You, Constant.ClassID.AB, 10, "自分から攻撃する時、武器の威力+10"),
+        new (Constant.PlayerID.You, Constant.ClassID.B2, 10, "反撃する時、敵より先に行動する"),
+    };
+
+    #endregion
+
     #region アイテムデータベース
 
     /// <summary>
@@ -526,43 +643,35 @@ public class GameDatabase
     /// </summary>
     public static readonly ItemData[] ItemDataList = new ItemData[]
     {
-        new(ItemType.None, "素手", -1, -1, 0, 100, 1, 1),
-        new(ItemType.None, "素手（魔）", -1, -1, 0, 100, 1, 1),
-
-        new(ItemType.Rod, "リフの杖",      50, 30, 10, 100, 1, 1),
-        new(ItemType.Item, "エリクサー",   50, 3, 100, 100, 0, 0),
-
-        new(ItemType.Sword, "鉄の剣",       1, 40, 5, 85, 1, 1),
-        new(ItemType.Spear, "鉄の槍",       1, 40, 7, 70, 1, 1),
-        new(ItemType.Axe,   "鉄の斧",       1, 40, 8, 65, 1, 1),
-        new(ItemType.Arrow, "鉄の弓",       1, 40, 6, 80, 2, 3),
-        new(ItemType.Book,  "ファイアー",   1, 40, 5, 95, 1, 2),
-
-        new(ItemType.Sword, "銀の剣",       20, 20, 13, 75, 1, 1),
-        new(ItemType.Spear, "銀の槍",       20, 20, 14, 65, 1, 1),
-        new(ItemType.Axe, "銀の斧",         20, 20, 15, 55, 1, 1),
-        new(ItemType.Arrow, "銀の弓",       20, 20, 13, 70, 2, 3),
-        new(ItemType.Book, "ブリザード",    20, 15, 13, 80, 1, 2),
-
-        new(ItemType.Sword, "キルソード",   30, 20, 9, 80, 1, 1, 30),
-        new(ItemType.Spear, "キラーランス", 30, 20, 10, 75, 1, 1, 30),
-        new(ItemType.Axe, "キラーアクス",   30, 20, 11, 65, 1, 1, 30),
-        new(ItemType.Arrow, "キラーボウ",   30, 20, 9, 80, 2, 3, 30),
-        new(ItemType.Book, "キルグリム",    30, 20, 8, 70, 1, 2, 30),
-
-        new(ItemType.Sword, "ルキフグス",       100, 30, 23, 80, 1, 2, 15),
-        new(ItemType.Spear, "アガリアレプト",   100, 30, 18, 100, 1, 2, 15),
-        new(ItemType.Axe, "サタナキア",         100, 30, 19, 90, 1, 2, 15),
-        new(ItemType.Arrow, "フルーレティ",     100, 30, 18, 85, 2, 4, 15),
-        new(ItemType.Book, "アッピンの赤い本",  100, 30, 21, 95, 1, 3, 15),
-
-        new(ItemType.Sword, "妙法村正",         200, 30, 16, 120, 1, 1, 60),
-        new(ItemType.Spear, "ディスラプター",   200, 30, 27, 65, 1, 3, 0),
-        new(ItemType.Axe, "タンムーズ",         200, 30, 22, 100, 1, 1, 20),
-        new(ItemType.Arrow, "マルドゥーク",     200, 30, 15, 100, 2, 6, 0),
-        new(ItemType.Book, "ネクロノミコン",    200, 30, 36, 40, 1, 2, 0),
-
-
+        new(ItemType.None,  "素手",               -1, -1, 0, 100, 1, 1, 0),
+        new(ItemType.Book,  "素手（魔）",         -1, -1, 0, 100, 1, 2, 0),
+        new(ItemType.Item,  "エリクサー",         1, 3, 100, 100, 0, 0, 0),
+        new(ItemType.Rod,   "リフの杖",           1, 30, 10, 100, 1, 1, 0),
+        new(ItemType.Sword, "鉄の剣",             1, 40, 5, 85, 1, 1, 0),
+        new(ItemType.Spear, "鉄の槍",             1, 40, 7, 70, 1, 1, 0),
+        new(ItemType.Axe,   "鉄の斧",             1, 40, 8, 65, 1, 1, 0),
+        new(ItemType.Arrow, "鉄の弓",             1, 40, 6, 80, 2, 3, 0),
+        new(ItemType.Book,  "ファイアー",         1, 40, 5, 95, 1, 2, 0),
+        new(ItemType.Sword, "銀の剣",             15, 20, 13, 75, 1, 1, 0),
+        new(ItemType.Spear, "銀の槍",             15, 20, 14, 65, 1, 1, 0),
+        new(ItemType.Axe,   "銀の斧",             15, 20, 15, 55, 1, 1, 0),
+        new(ItemType.Arrow, "銀の弓",             15, 20, 13, 70, 2, 3, 0),
+        new(ItemType.Book,  "ブリザード",         15, 20, 13, 80, 1, 2, 0),
+        new(ItemType.Sword, "キルソード",         51, 20, 9, 80, 1, 1, 30),
+        new(ItemType.Spear, "キラーランス",       51, 20, 10, 75, 1, 1, 30),
+        new(ItemType.Axe,   "キラーアクス",       51, 20, 11, 65, 1, 1, 30),
+        new(ItemType.Arrow, "キラーボウ",         51, 20, 9, 80, 2, 3, 30),
+        new(ItemType.Book,  "キルグリム",         51, 20, 8, 90, 1, 2, 30),
+        new(ItemType.Sword, "ルキフグス",         101, 40, 23, 80, 1, 2, 15),
+        new(ItemType.Spear, "アガリアレプト",     101, 40, 18, 100, 1, 2, 15),
+        new(ItemType.Axe,   "サタナキア",         101, 40, 19, 90, 1, 2, 15),
+        new(ItemType.Arrow, "フルーレティ",       101, 40, 18, 85, 2, 4, 15),
+        new(ItemType.Book,  "アッピンの赤い本",   101, 40, 21, 95, 1, 3, 15),
+        new(ItemType.Sword, "妙法村正",           151, 40, 16, 120, 1, 1, 60),
+        new(ItemType.Spear, "ディスラプター",     151, 40, 27, 65, 1, 3, 0),
+        new(ItemType.Axe,   "フレースヴェルグ",   151, 40, 22, 100, 1, 1, 20),
+        new(ItemType.Arrow, "マルドゥーク",       151, 40, 15, 100, 2, 6, 0),
+        new(ItemType.Book,  "ネクロノミコン",     151, 40, 36, 40, 1, 2, 0),
 
         new(ItemType.None, "素手", -1, -1, 0, 100, 1, 1),
     };
@@ -600,57 +709,61 @@ public class GameDatabase
     /// <summary>
     /// ランダムアイテム生成
     /// </summary>
-    /// <param name="lv">持つ敵のレベル</param>
+    /// <param name="floor">フロア番号</param>
     /// <param name="boss">ボスである</param>
     /// <param name="weaponOnly">true:武器のみ</param>
     /// <param name="type">None以外を指定するとタイプを指定</param>
     /// <param name="outRate">ハズレになる確率0～100</param>
     /// <returns></returns>
-    public static ItemID CalcRandomItem(int lv, bool boss, bool weaponOnly = true, ItemType type = ItemType.None, int outRate = 0)
+    public static ItemID CalcRandomItem(int floor, bool boss, bool weaponOnly = true, ItemType type = ItemType.None, int outRate = 0)
     {
         if (Util.RandomCheck(outRate)) return ItemID.FreeHand;
 
+        var bossRate = boss ? 2 : 1; // ボスはレアリティ下がる＝レア高いものが出やすい
+
         var koho = new List<ItemID>();
-        var maxRarelity = 0;
-        var bossRate = boss ? 3 : 1; // ボスはレアリティ下がる＝レア高いものが出やすい
 
         for (var i = 0; i < (int)ItemID.ITEM_COUNT; ++i)
         {
             var data = ItemDataList[i];
             if (data.iType == ItemType.None) continue;
+            if (data.rarelity < 0) continue;
             if (type != ItemType.None && data.iType != type) continue;
             if (weaponOnly &&
-                (data.iType == ItemType.Rod ||
-                data.iType == ItemType.Item ||
-                data.iType == ItemType.None)) continue;
+                (data.iType == ItemType.Rod || data.iType == ItemType.Item)) continue;
 
-            // rarelityレベルまでは出現しない
-            var rareLine = lv + (boss ? 20 : 0);
-            if (data.rarelity / bossRate > rareLine) continue;
-
-            if (maxRarelity < data.rarelity / bossRate) maxRarelity = data.rarelity / bossRate;
+            // rarelityフロアまでは出現しない
+            if (data.rarelity > floor) continue;
             koho.Add((ItemID)i);
         }
-
         if (koho.Count == 0) return ItemID.FreeHand;
 
         // 候補からrarelityによって確率で判定
-        // 最大値との差+1＝選ばれやすさ　最大値のものは1になる
-        var selectRate = new Func<ItemID, int>(id =>
-            maxRarelity - ItemDataList[(int)id].rarelity / bossRate + 1
-            );
-        // 全部の選ばれやすさを足す
-        var totalAdd = koho.Sum(id => selectRate(id));
-        var checkNum = Util.RandomInt(0, totalAdd);
-        foreach (var id in koho)
+        var kohoRarelity = koho.Select(id => floor - ItemDataList[(int)id].rarelity / bossRate + 1).ToList();
+        var selIdx = SelectRateIndex(kohoRarelity);
+
+        return koho[selIdx];
+    }
+
+    #endregion
+
+    #region 計算
+
+    /// <summary>
+    /// 選ばれやすさintのリスト → ランダムでどれかを選ぶ
+    /// </summary>
+    /// <param name="rateList"></param>
+    /// <returns>選ぶインデックス</returns>
+    private static int SelectRateIndex(List<int> rateList)
+    {
+        var rand = Util.RandomInt(0, rateList.Sum() - 1);
+        for (var i = 0; i < rateList.Count; i++)
         {
-            // ランダム値が選ばれやすさより小さければ選択
-            var rate = selectRate(id);
-            if (checkNum < rate) return id;
-            checkNum -= rate;
+            if (rateList[i] > rand) return i;
+            rand -= rateList[i];
         }
 
-        return ItemID.FreeHand;
+        return rateList.Count - 1;
     }
 
     #endregion

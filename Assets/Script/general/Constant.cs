@@ -87,6 +87,8 @@ public class Constant
     public enum EnemyID
     {
         GreenSlime = 0,
+
+        ENEMY_COUNT,
     }
 
     #endregion

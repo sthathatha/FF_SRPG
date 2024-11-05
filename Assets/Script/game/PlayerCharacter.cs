@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PlayerCharacter : CharacterBase
@@ -173,6 +174,60 @@ public class PlayerCharacter : CharacterBase
 
         // 右アニメは左右反転
         anim.GetComponent<SpriteRenderer>().flipX = dir == Constant.Direction.Right;
+    }
+
+    /// <summary>
+    ///  スキル持っているか
+    /// </summary>
+    /// <param name="sid"></param>
+    /// <returns></returns>
+    public override bool HasSkill(GameDatabase.SkillID sid)
+    {
+        var prm = GetSaveParameter();
+        return prm.Skills.Contains((int)sid);
+    }
+
+    /// <summary>
+    /// スキル取得判定
+    /// </summary>
+    public override void CheckGetSkill()
+    {
+        base.CheckGetSkill();
+
+        var prm = GetSaveParameter();
+        var getList = new List<int>();
+        for (var i = 0; i < (int)GameDatabase.SkillID.SKILL_COUNT; ++i)
+        {
+            if (HasSkill((GameDatabase.SkillID)i)) continue;
+
+            var s = GameDatabase.SkillDataList[i];
+            if (s.getPlayer == playerID &&
+                s.getClass == prm.ClassID &&
+                s.getLevel <= prm.Lv)
+                getList.Add(i);
+        }
+
+        prm.Skills.AddRange(getList);
+    }
+
+    /// <summary>
+    /// スキル忘却判定
+    /// </summary>
+    public override void CheckDeleteSkill()
+    {
+        base.CheckDeleteSkill();
+
+        var prm = GetSaveParameter();
+        for(var i = prm.Skills.Count-1; i >= 0; --i)
+        {
+            var s = GameDatabase.SkillDataList[prm.Skills[i]];
+            if (s.canKeep) continue;
+
+            if (s.getPlayer != playerID ||
+                s.getClass != prm.ClassID ||
+                s.getLevel > prm.Lv)
+                prm.Skills.RemoveAt(i);
+        }
     }
 
     #endregion

@@ -227,4 +227,25 @@ public abstract class CharacterBase : MonoBehaviour
     }
 
     #endregion
+
+    #region スキル
+
+    /// <summary>
+    /// スキル持っているか
+    /// </summary>
+    /// <param name="sid"></param>
+    /// <returns></returns>
+    virtual public bool HasSkill(GameDatabase.SkillID sid) { return false; }
+
+    /// <summary>
+    /// スキル取得判定
+    /// </summary>
+    virtual public void CheckGetSkill() { }
+
+    /// <summary>
+    /// スキル忘却判定
+    /// </summary>
+    virtual public void CheckDeleteSkill() { }
+
+    #endregion
 }

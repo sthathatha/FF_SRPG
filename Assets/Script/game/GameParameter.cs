@@ -676,9 +676,11 @@ public class GameParameter
         var canCounter = false;
         // ドロシー以外の素手は反撃不可
         if (defChr.IsPlayer() &&
-            d_weaponId == GameDatabase.ItemID.FreeHand &&
-            ((PlayerCharacter)defChr).playerID != Constant.PlayerID.Drows)
+            !defChr.HasSkill(GameDatabase.SkillID.Drows_FreeHand) &&
+            d_weaponId == GameDatabase.ItemID.FreeHand)
             canCounter = false;
+        else if (defChr.HasSkill(GameDatabase.SkillID.Eraps_AllCounter))
+            canCounter = true;
         else
             canCounter = distance >= d_weaponData.rangeMin && distance <= d_weaponData.rangeMax + d_rangePlus;
         #endregion

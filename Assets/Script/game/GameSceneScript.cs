@@ -24,6 +24,7 @@ public class GameSceneScript : MainScriptBase
     public FieldSystem field;
 
     public CellUI cellUI;
+    public CanvasGroup gameoverScreen;
 
     public AudioClip se_attack_normal;
     public AudioClip se_attack_dead;
@@ -118,7 +119,8 @@ public class GameSceneScript : MainScriptBase
     /// </summary>
     public void OptionClick()
     {
-
+        // いつでも
+        ManagerSceneScript.GetInstance().optionUI.Open();
     }
 
     #region プレイヤーターン
@@ -404,8 +406,9 @@ public class GameSceneScript : MainScriptBase
         // ターン表示
         yield return manager.turnDisplay.DisplayTurnStart(false);
 
-        // 動けるのが居なくなるまで
-        while (field.GetActableChara(false).Count > 0)
+        // 動けるのが居なくなるまたはプレイヤーが居なくなるまで
+        while (field.GetActableChara(false).Count > 0 &&
+            field.GetActableChara(true).Count > 0)
         {
             var enm = field.GetActableChara(false)[0] as EnemyCharacter;
             var moveList = field.GetMovableLocations(enm)
@@ -712,10 +715,10 @@ public class GameSceneScript : MainScriptBase
     private int BattleWeaponDecrease(PlayerCharacter pc, bool atk)
     {
         var decCount = 1;
-        if (atk)
-        {
-            //todo:スキルにより武器消耗回数変更
-        }
+        // スキルにより武器消耗回数変更
+        if (atk && pc.HasSkill(SkillID.Drows_WeaponSave)) decCount = 0;
+        else if (pc.HasSkill(SkillID.Drows_WeaponBreak)) decCount = 2;
+
         if (decCount == 0) return -1; //消耗しない
 
         var equipIndex = GameParameter.otherData.GetEquipIndex(pc.playerID);
@@ -783,7 +786,7 @@ public class GameSceneScript : MainScriptBase
         else if (savePrm.ClassID != Constant.ClassID.Base) checkLv += 40;
         checkLv += savePrm.ReviveCount * 50;
 
-        var exp = 30 + (enemyLv - checkLv) * 10 / 3;
+        var exp = 40 + (enemyLv - checkLv) * 4;
 
         if (!isDefeat) exp /= 3;
         if (exp < 1) return 1;
@@ -798,7 +801,7 @@ public class GameSceneScript : MainScriptBase
     /// <returns></returns>
     private int ExpCalcHeal(PlayerCharacter pc)
     {
-        return 19;
+        return 15;
     }
 
     /// <summary>
@@ -842,6 +845,8 @@ public class GameSceneScript : MainScriptBase
             pc.param.Def += upParam.def;
             pc.param.Mdf += upParam.mdf;
             pc.UpdateHP(true);
+
+            pc.CheckGetSkill();
         }
 
         // セーブデータにも反映
@@ -895,6 +900,8 @@ public class GameSceneScript : MainScriptBase
             pc.param.Mdf += downParam.mdf;
             pc.param.Move += downParam.move;
             saveParam.ClassID = Constant.ClassID.Base;
+
+            pc.CheckDeleteSkill();
         }
         else
         {
@@ -912,6 +919,8 @@ public class GameSceneScript : MainScriptBase
             pc.param.Mdf += upParam.mdf;
             pc.param.Move += upParam.move;
             saveParam.ClassID = ccui.SelectClass;
+
+            pc.CheckGetSkill();
         }
         GameParameter.Prm_SetFieldParam(pc.playerID, pc.param);
 
@@ -966,6 +975,7 @@ public class GameSceneScript : MainScriptBase
         return players.Count == 0;
     }
 
+    private bool gameover_shown = false;
     /// <summary>
     /// ゲームオーバー処理
     /// </summary>
@@ -974,9 +984,29 @@ public class GameSceneScript : MainScriptBase
     {
         //todo:ランキング登録
 
-        //todo:UI表示
+        // UI表示
+        gameover_shown = false;
+        var alpha = new DeltaFloat();
+        alpha.Set(0f);
+        alpha.MoveTo(1f, 1.5f, DeltaFloat.MoveType.LINE);
+        gameoverScreen.gameObject.SetActive(true);
+        gameoverScreen.alpha = 0f;
+        while (alpha.IsActive())
+        {
+            yield return null;
+            gameoverScreen.alpha = alpha.Get();
+        }
 
-        yield break;
+        gameover_shown = true;
+        yield return new WaitWhile(() => gameover_shown);
+    }
+
+    /// <summary>
+    /// ゲームオーバー後クリック
+    /// </summary>
+    public void Gameover_Click()
+    {
+        gameover_shown = false;
     }
 
     #endregion
@@ -996,9 +1026,6 @@ public class GameSceneScript : MainScriptBase
 
         // 左端じゃないキャラが居たら次行かない
         if (players.Any(p => p.GetLocation().x != 0)) return false;
-
-        // ボスが残っていたら次行かない
-        if (field.GetEnemies().Any(e => e.isBoss)) return false;
 
         // 全員左端
         return true;

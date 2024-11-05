@@ -54,7 +54,7 @@ public class TitleSceneScript : MainScriptBase
     /// </summary>
     public void ClickOption()
     {
-
+        ManagerSceneScript.GetInstance().optionUI.Open();
     }
 
     /// <summary>

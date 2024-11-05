@@ -66,7 +66,10 @@ public class StatusScreen : MonoBehaviour
     public TMP_Text txt_dropItem;
     public TMP_Text txt_realAttack;
 
-    //todo: スキル表示用
+    // スキル表示用
+    public Transform skill_parent;
+    public TMP_Text skill_dummy;
+    private List<TMP_Text> skills = new List<TMP_Text>();
 
     #endregion
 
@@ -149,6 +152,18 @@ public class StatusScreen : MonoBehaviour
         txt_rate_rod.SetText(weaponRate.rod.ToString());
 
         faceImage.sprite = ManagerSceneScript.GetInstance().generalResources.GetFaceIconP(chr.playerID);
+
+        // スキル
+        foreach (var s in skills) Destroy(s.gameObject);
+        skills.Clear();
+        foreach (var sid in saveParam.Skills)
+        {
+            var s = Instantiate(skill_dummy, skill_parent, false);
+            s.rectTransform.localPosition = new Vector3(0, skills.Count * -40f);
+            s.SetText(GameDatabase.SkillDataList[sid].detail);
+            s.gameObject.SetActive(true);
+            skills.Add(s);
+        }
     }
 
     /// <summary>

@@ -81,6 +81,9 @@ public class ManagerSceneScript : MonoBehaviour
     /// <summary>クラスチェンジUI</summary>
     public ClassChangeUI classChangeUI = null;
 
+    /// <summary>オプション</summary>
+    public OptionUI optionUI = null;
+
     /// <summary>フェーダ</summary>
     public CanvasGroup fader = null;
 

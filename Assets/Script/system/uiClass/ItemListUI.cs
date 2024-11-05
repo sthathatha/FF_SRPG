@@ -29,7 +29,7 @@ public class ItemListUI : MonoBehaviour
 
     #region 変数
 
-    private Constant.PlayerID playerID;
+    private PlayerCharacter showPc;
     private List<ItemListUIItem> items = new List<ItemListUIItem>();
 
     #endregion
@@ -60,7 +60,7 @@ public class ItemListUI : MonoBehaviour
     /// <returns></returns>
     public IEnumerator ShowCoroutine(PlayerCharacter pc, bool initFilter)
     {
-        playerID = pc.playerID;
+        showPc = pc;
         if (initFilter)
         {
             var saveParam = pc.GetSaveParameter();
@@ -74,7 +74,7 @@ public class ItemListUI : MonoBehaviour
             tgl_item.isOn = false;
         }
 
-        CreateItemList(pc.playerID);
+        CreateItemList(pc);
         // 半分より右に居る場合左に置く
         var pos = window.localPosition;
         if (pc.GetLocation().x >= FieldSystem.COL_COUNT / 2)
@@ -119,7 +119,7 @@ public class ItemListUI : MonoBehaviour
     public void ChangeSwitch()
     {
         if (Result != ItemResult.Active) return;
-        CreateItemList(playerID);
+        CreateItemList(showPc);
     }
 
     #endregion
@@ -129,7 +129,7 @@ public class ItemListUI : MonoBehaviour
     /// <summary>
     /// アイテムリスト作成
     /// </summary>
-    private void CreateItemList(Constant.PlayerID pid)
+    private void CreateItemList(PlayerCharacter pc)
     {
         foreach (var itm in items)
         {
@@ -138,7 +138,7 @@ public class ItemListUI : MonoBehaviour
         items.Clear();
 
         // ドロシーは一番上に素手追加
-        if (pid == Constant.PlayerID.Drows)
+        if (pc.HasSkill(GameDatabase.SkillID.Drows_FreeHand))
         {
             // 素手
             var ui = Instantiate(item_dummy, item_parent, false);

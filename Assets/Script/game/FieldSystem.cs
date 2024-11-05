@@ -24,6 +24,11 @@ public class FieldSystem : MonoBehaviour
     private const float ZERO_X = -(COL_COUNT - 1) * CELL_SIZE / 2f;
     private const float ZERO_Y = -(ROW_COUNT - 1) * CELL_SIZE / 2f;
 
+    /// <summary>撤退した時復帰するフロア数</summary>
+    private const int RETURN_FLOOR_ESCAPE = 4;
+    /// <summary>HP0の時復帰するフロア数</summary>
+    private const int RETURN_FLOOR_DEATH = 7;
+
     #endregion
 
     #region メンバー
@@ -534,6 +539,9 @@ public class FieldSystem : MonoBehaviour
             // 悠
             CreatePlayer(Constant.PlayerID.You, new Vector2Int(COL_COUNT - 1, ROW_COUNT - 6));
 
+            //
+            foreach (var p in players) p.CheckGetSkill();
+
             // 所持品等初期化
             GameParameter.otherData.Init();
 
@@ -549,8 +557,9 @@ public class FieldSystem : MonoBehaviour
     {
         var addX = next ? -COL_COUNT + 1 : 0;
 
-        // 3フロアごとに敵レベル１アップ
-        var lv = Prm_BattleFloor / 3 + 1;
+        // 2フロアごとに敵レベル１アップ
+        var lv = Prm_BattleFloor / 2 + 1;
+        var randMax = Mathf.CeilToInt(lv / 15);
 
         // ドロップアイテムを確実に持っているやつ
         var dropIndex = -1;
@@ -568,16 +577,16 @@ public class FieldSystem : MonoBehaviour
         var weakCnt = Util.RandomInt(4, 6);
         for (var i = 0; i < weakCnt; i++)
         {
-            //todo:雑魚敵IDを選択
-            var eid = (Constant.EnemyID)Util.RandomInt(0, 0);
+            // 雑魚敵IDを選択
+            var eid = GameDatabase.CalcRandomEnemy(Prm_BattleFloor, false);
 
             var e = Instantiate(enemy_dummy, Character_parent, false);
             e.gameObject.SetActive(true);
             e.SetLocation(new Vector2Int(Util.RandomInt(1, 5) + addX, i));
             e.SetCharacter(eid);
-            e.InitParameter(lv);
+            e.InitParameter(lv + Util.RandomInt(0, randMax));
             if (dropIndex == i)
-                e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(lv, false));
+                e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(Prm_BattleFloor, false));
             else
                 e.SetWeaponAndDrop();
             enemies.Add(e);
@@ -587,10 +596,10 @@ public class FieldSystem : MonoBehaviour
         if (Prm_BattleFloor % 10 == 0)
         {
             // 強敵のLv
-            var strongLv = lv >= 100 ? Mathf.FloorToInt(lv * 1.1f) : lv + 10;
+            var strongLv = lv >= 100 ? Mathf.FloorToInt(lv * 1.1f) : (lv + 10);
 
             //todo:強敵IDを選択
-            var eid = (Constant.EnemyID)Util.RandomInt(0, 0);
+            var eid = GameDatabase.CalcRandomEnemy(Prm_BattleFloor, true);
 
             var e = Instantiate(enemy_dummy, Character_parent, false);
             e.gameObject.SetActive(true);
@@ -634,7 +643,7 @@ public class FieldSystem : MonoBehaviour
             players.Remove(pc);
 
             // 復活時間を設定
-            GameParameter.Prm_Get(pc.playerID).RestBattle = death ? 4 : 2;
+            GameParameter.Prm_Get(pc.playerID).RestBattle = death ? RETURN_FLOOR_DEATH : RETURN_FLOOR_ESCAPE;
         }
         else
         {

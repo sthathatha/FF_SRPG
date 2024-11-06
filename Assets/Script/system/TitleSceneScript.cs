@@ -19,12 +19,10 @@ public class TitleSceneScript : MainScriptBase
     /// <summary>
     /// 初期化
     /// </summary>
-    /// <param name="init"></param>
     /// <returns></returns>
-    public override IEnumerator AfterFadeIn(bool init)
+    public override IEnumerator BeforeInitFadeIn()
     {
-        yield return base.AfterFadeIn(init);
-
+        yield return base.BeforeInitFadeIn();
         // セーブデータがあればContinue
         btnContinue.interactable = Global.GetSaveData().IsEnableGameData();
     }

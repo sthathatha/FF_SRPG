@@ -76,17 +76,18 @@ public class GameSceneScript : MainScriptBase
         {
             if (startGame)
             {
-                //最初のみ行うこと　特に無い？
+                //最初のみ行うこと
             }
             else
             {
-                // 最初以外　セーブ
-                field.SaveField();
             }
-            startGame = false;
 
+            // 行動のたびにセーブするようにする、ロード直後はターン加算しないようにする、行動決定操作時にランキング不可フラグ操作
             // ターン加算
-            field.Prm_BattleTurn++;
+            if (!startGame || !Global.GetTemporaryData().isLoadGame)
+                field.Prm_BattleTurn++;
+
+            startGame = false;
 
             yield return PlayerTurn();
             field.ResetAllActable();
@@ -171,6 +172,9 @@ public class GameSceneScript : MainScriptBase
             }
             if (berserkAct) continue;
 
+            // 
+            field.SaveField();
+
             // クリック待ち
             yield return field.WaitInput(true);
 
@@ -214,6 +218,9 @@ public class GameSceneScript : MainScriptBase
                 if (NextFloor_Check()) break;
             }
         }
+
+        // 敵ターンはロード不可
+        field.LoadDisableSet();
     }
 
     /// <summary>
@@ -376,6 +383,10 @@ public class GameSceneScript : MainScriptBase
                 if (!selAtkChr.IsPlayer()) continue;
                 // すでにHP最大ならキャンセル
                 if (selAtkChr.param.HP == selAtkChr.param.MaxHP) continue;
+
+                // 行動中ロード不可
+                field.LoadDisableSet();
+
                 yield return PTurnHealCoroutine(pc, selAtkChr as PlayerCharacter, itemui.Result_SelectIndex);
                 PTurnSetActEnd(pc);
                 break;
@@ -398,6 +409,9 @@ public class GameSceneScript : MainScriptBase
                 // キャンセル
                 if (estUI.Result == BattleEstimateUI.BattleSelectResult.Cancel) continue;
 
+                // 戦闘開始からロード不可
+                field.LoadDisableSet();
+
                 yield return TurnBattleCoroutine(battleParam, pc, selAtkChr, null);
                 break;
             }
@@ -411,12 +425,9 @@ public class GameSceneScript : MainScriptBase
     /// 行動終了セット
     /// </summary>
     /// <param name="pc"></param>
-    /// <param name="skillContinue"></param>
+    /// <param name="skillContinue">スキルによって行動終了しない</param>
     private void PTurnSetActEnd(PlayerCharacter pc, bool skillContinue = false)
     {
-        // ロード禁止フラグセット
-        field.LoadDisableSet();
-
         // 敵がもう居なかったら終了しない
         if (field.GetEnemies().Count == 0 || skillContinue)
         {

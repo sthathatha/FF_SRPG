@@ -137,12 +137,13 @@ public class FieldSystem : MonoBehaviour
         save.SetGameData(SAVE_BOSSPHASE, bossPhase);
 
         GameParameter.Save();
+
         save.SaveGameData();
     }
 
     /// <summary>
     /// ロード禁止フラグ
-    /// ターン開始時のSaveFieldにてフラグを下ろし、プレイヤー行動時に立てる
+    /// SaveFieldにてフラグを下ろし、プレイヤー行動選択時に立てる
     /// たった状態でロードするとランキング登録不可になる
     /// </summary>
     public void LoadDisableSet()
@@ -578,7 +579,7 @@ public class FieldSystem : MonoBehaviour
             itm.ItemData.iType == GameDatabase.ItemType.Item) return 0;
             else return itm.useCount;
         });
-        // 袋の武器の合計が10回以下なら確実に武器ドロップ
+        // 袋の武器の合計が10回未満なら確実に武器ドロップ
         if (weaponTotalRest < 10) dropIndex = Util.RandomInt(0, 4);
 
         // 4～6体の下級敵を生成
@@ -954,6 +955,11 @@ public class FieldSystem : MonoBehaviour
             range += 4;
         if (chr.HasSkill(GameDatabase.SkillID.Worra_FastMove))
             range += 1;
+
+        // 敵がもう居ない場合は歩数大増量
+        if (enemies.Count == 0)
+            range += 10;
+
         ret.AddRange(GetMovableLocations(chr, checkedList, beforeList, range));
 
         return ret;

@@ -55,7 +55,8 @@ public abstract class CharacterBase : MonoBehaviour
     {
         return CreateConcatString(location.x.ToString(),
                                     location.y.ToString(),
-                                    param.ToSaveString());
+                                    param.ToSaveString(),
+                                    turnActable ? "1" : "0");
     }
 
     /// <summary>
@@ -69,6 +70,7 @@ public abstract class CharacterBase : MonoBehaviour
         SetLocation(loc);
         param.ReadString(spl[2]);
         UpdateHP(true);
+        SetActable(spl[3] == "1");
     }
 
     #endregion

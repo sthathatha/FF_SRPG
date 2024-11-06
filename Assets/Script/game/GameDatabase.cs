@@ -1,10 +1,6 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using static GameDatabase;
 
 /// <summary>
 /// 定数データベース
@@ -409,6 +405,9 @@ public class GameDatabase
     #region 名称データベース
 
     // 他の場所にあるテキスト
+    // 行動　待機　撤退
+    // 攻撃　命中　必殺
+    // 
     // 力　魔力　攻撃　技　速さ　幸運　守備　魔防　移動
     // を手に入れた
     // が壊れた
@@ -500,6 +499,7 @@ public class GameDatabase
     /// <summary>敵名</summary>
     public static readonly string[] Name_Enemies =
     {
+        "グリーンスライム",
         "スケルトン（剣）",
         "スケルトン（槍）",
         "スケルトン（斧）",

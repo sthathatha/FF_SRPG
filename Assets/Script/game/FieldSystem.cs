@@ -82,7 +82,11 @@ public class FieldSystem : MonoBehaviour
     /// <summary>戦闘内のターン数</summary>
     public int Prm_BattleTurn { get; set; } = 0;
 
+    /// <summary>ランキング登録可能フラグ</summary>
     public bool Prm_EnableRanking { get; set; } = true;
+
+    /// <summary>ボスフェーズ　0～9まで固定</summary>
+    private int bossPhase = 0;
 
     #endregion
 
@@ -112,6 +116,7 @@ public class FieldSystem : MonoBehaviour
 
     private const string SAVE_ENABLERANKING = "enbRank";
     private const string SAVE_LOADDISABLE = "loadDisable";
+    private const string SAVE_BOSSPHASE = "bossPhase";
 
     /// <summary>
     /// セーブ
@@ -129,6 +134,7 @@ public class FieldSystem : MonoBehaviour
         save.SetGameData(SAVE_TURN, Prm_BattleTurn);
         save.SetGameData(SAVE_ENABLERANKING, Prm_EnableRanking ? 1 : 0);
         save.SetGameData(SAVE_LOADDISABLE, 0);
+        save.SetGameData(SAVE_BOSSPHASE, bossPhase);
 
         GameParameter.Save();
         save.SaveGameData();
@@ -165,6 +171,7 @@ public class FieldSystem : MonoBehaviour
 
         Prm_BattleFloor = save.GetGameDataInt(SAVE_FLOOR);
         Prm_BattleTurn = save.GetGameDataInt(SAVE_TURN);
+        bossPhase = save.GetGameDataInt(SAVE_BOSSPHASE);
         var pdata = save.GetGameDataString(SAVE_PLAYERDATA);
         players.Clear();
         if (!string.IsNullOrEmpty(pdata))
@@ -517,6 +524,7 @@ public class FieldSystem : MonoBehaviour
             Prm_BattleFloor = 1;
             Prm_BattleTurn = 0;
             Prm_EnableRanking = true;
+            bossPhase = 0;
 
             // 6人初期化
             GameParameter.Prm_Drows.Init(Constant.PlayerID.Drows);
@@ -539,7 +547,7 @@ public class FieldSystem : MonoBehaviour
             // 悠
             CreatePlayer(Constant.PlayerID.You, new Vector2Int(COL_COUNT - 1, ROW_COUNT - 6));
 
-            //
+            // 初期スキル
             foreach (var p in players) p.CheckGetSkill();
 
             // 所持品等初期化
@@ -598,15 +606,77 @@ public class FieldSystem : MonoBehaviour
             // 強敵のLv
             var strongLv = lv >= 100 ? Mathf.FloorToInt(lv * 1.1f) : (lv + 10);
 
-            //todo:強敵IDを選択
-            var eid = GameDatabase.CalcRandomEnemy(Prm_BattleFloor, true);
+            // ボスID
+            var bossID = Constant.EnemyID.ENEMY_COUNT;
+            var bossWpn = GameDatabase.ItemID.FreeHand;
+            var bossDrop = GameDatabase.ItemID.FreeHand;
+            #region 最初10体は固定、倒したら進む
+            switch (bossPhase)
+            {
+                case 0:
+                    bossID = Constant.EnemyID.Angel;
+                    bossWpn = GameDatabase.ItemID.Arrow2;
+                    bossDrop = GameDatabase.ItemID.Arrow3;
+                    break;
+                case 1:
+                    bossID = Constant.EnemyID.ArchAngel;
+                    bossWpn = GameDatabase.ItemID.Sword2;
+                    bossDrop = GameDatabase.ItemID.Sword3;
+                    break;
+                case 2:
+                    bossID = Constant.EnemyID.Principality;
+                    bossWpn = GameDatabase.ItemID.Spear2;
+                    bossDrop = GameDatabase.ItemID.Spear3;
+                    break;
+                case 3:
+                    bossID = Constant.EnemyID.Power;
+                    bossWpn = GameDatabase.ItemID.Axe2;
+                    bossDrop = GameDatabase.ItemID.Axe3;
+                    break;
+                case 4:
+                    bossID = Constant.EnemyID.Virtue;
+                    bossWpn = GameDatabase.ItemID.Arrow_Ex1;
+                    bossDrop = GameDatabase.ItemID.Arrow_Ex1;
+                    break;
+                case 5:
+                    bossID = Constant.EnemyID.Dominion;
+                    bossWpn = GameDatabase.ItemID.Spear_Ex1;
+                    bossDrop = GameDatabase.ItemID.Spear_Ex1;
+                    break;
+                case 6:
+                    bossID = Constant.EnemyID.Throne;
+                    bossWpn = GameDatabase.ItemID.Axe_Ex1;
+                    bossDrop = GameDatabase.ItemID.Axe_Ex1;
+                    break;
+                case 7:
+                    bossID = Constant.EnemyID.Cherubim;
+                    bossWpn = GameDatabase.ItemID.Book_Ex1;
+                    bossDrop = GameDatabase.ItemID.Book_Ex1;
+                    break;
+                case 8:
+                    bossID = Constant.EnemyID.Seraphim;
+                    bossWpn = GameDatabase.ItemID.Sword_Ex1;
+                    bossDrop = GameDatabase.ItemID.Sword_Ex1;
+                    break;
+                case 9:
+                    bossID = Constant.EnemyID.Prime;
+                    bossWpn = GameDatabase.ItemID.Book_Ex2;
+                    bossDrop = GameDatabase.ItemID.Book_Ex2;
+                    break;
+                default:
+                    bossID = GameDatabase.CalcRandomEnemy(Prm_BattleFloor, true);
+                    bossWpn = GameDatabase.ItemID.FreeHand;
+                    bossDrop = GameDatabase.CalcRandomItem(strongLv, true, false);
+                    break;
+            }
+            #endregion
 
             var e = Instantiate(enemy_dummy, Character_parent, false);
             e.gameObject.SetActive(true);
             e.SetLocation(new Vector2Int(1 + addX, ROW_COUNT - 1));
-            e.SetCharacter(eid, true);
+            e.SetCharacter(bossID, true);
             e.InitParameter(strongLv);
-            e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(strongLv, true, false));
+            e.SetWeaponAndDrop(bossWpn, bossDrop);
             enemies.Add(e);
         }
     }
@@ -647,6 +717,13 @@ public class FieldSystem : MonoBehaviour
         }
         else
         {
+            var ec = chr as EnemyCharacter;
+            if (death && ec.isBoss)
+            {
+                // ボスを倒したらフェーズ進む
+                bossPhase++;
+            }
+
             enemies.Remove(chr as EnemyCharacter);
         }
 
@@ -873,6 +950,10 @@ public class FieldSystem : MonoBehaviour
 
         // 移動歩数で取得
         var range = chr.param.Move;
+        if (chr.HasSkill(GameDatabase.SkillID.Eraps_FirstSpeed) && Prm_BattleTurn == 1)
+            range += 4;
+        if (chr.HasSkill(GameDatabase.SkillID.Worra_FastMove))
+            range += 1;
         ret.AddRange(GetMovableLocations(chr, checkedList, beforeList, range));
 
         return ret;
@@ -885,17 +966,31 @@ public class FieldSystem : MonoBehaviour
     /// <param name="checkedList">移動済みリスト</param>
     /// <param name="beforeList">直前のリスト</param>
     /// <param name="range">残り歩数</param>
+    /// <param name="isFirst">最初の１歩</param>
     /// <returns></returns>
-    private List<MoveHistory> GetMovableLocations(CharacterBase chr, List<Vector2Int> checkedList, List<MoveHistory> beforeList, int range)
+    private List<MoveHistory> GetMovableLocations(CharacterBase chr, List<Vector2Int> checkedList, List<MoveHistory> beforeList, int range, bool isFirst = true)
     {
         var ret = new List<MoveHistory>();
         var nextList = new List<MoveHistory>();
 
         foreach (var b in beforeList)
         {
+            if (!isFirst)
+            {
+                // ZOCスキル持ちが居たらここからは広がらない
+                var searchZoc = GetRangeLocations(b.current, 1, 1);
+                if (searchZoc.Any(s =>
+                {
+                    var c = GetCellCharacter(s);
+                    if (c == null) return false;
+                    if (c.IsPlayer() && chr.IsPlayer()) return false;
+                    return c.HasSkill(GameDatabase.SkillID.Eraps_ZOC);
+                })) continue;
+            }
+
             var tmpList = new List<Vector2Int>();
 
-            //
+            // 上下左右に
             var up = b.history.Last() + new Vector2Int(0, 1);
             var down = b.history.Last() + new Vector2Int(0, -1);
             var right = b.history.Last() + new Vector2Int(1, 0);
@@ -919,9 +1014,34 @@ public class FieldSystem : MonoBehaviour
             }
         }
 
-        if (range > 1) ret.AddRange(GetMovableLocations(chr, checkedList, nextList, range - 1));
+        if (range > 1)
+        {
+            ret.AddRange(GetMovableLocations(chr, checkedList, nextList, range - 1, false));
+        }
 
         return ret;
+    }
+
+    /// <summary>
+    /// 攻撃可能場所のリスト
+    /// </summary>
+    /// <param name="chr"></param>
+    /// <param name="moveList"></param>
+    /// <returns></returns>
+    public List<Vector2Int> GetAttackableLocations(CharacterBase chr, List<Vector2Int> moveList)
+    {
+        var ret = new List<Vector2Int>();
+        var rangeMin = chr.GetRangeMin();
+        var rangeMax = chr.GetRangeMax();
+
+        foreach (var move in moveList)
+        {
+            var checkChr = GetCellCharacter(move);
+            if (checkChr != null && checkChr != chr) continue;
+
+            ret.AddRange(GetRangeLocations(move, rangeMin, rangeMax));
+        }
+        return ret.Distinct().ToList();
     }
 
     /// <summary>
@@ -984,6 +1104,25 @@ public class FieldSystem : MonoBehaviour
         return ret;
     }
 
+    /// <summary>
+    /// 汎用　距離内のキャラ取得
+    /// </summary>
+    /// <param name="center"></param>
+    /// <param name="rangeMin"></param>
+    /// <param name="rangeMax"></param>
+    /// <returns></returns>
+    public List<CharacterBase> GetRangeCharacters(Vector2Int center, int rangeMin, int rangeMax)
+    {
+        var ret = new List<CharacterBase>();
+        var locs = GetRangeLocations(center, rangeMin, rangeMax);
+        foreach (var loc in locs)
+        {
+            var chr = GetCellCharacter(loc);
+            if (chr != null) ret.Add(chr);
+        }
+        return ret;
+    }
+
     #endregion
 
     #region AI用
@@ -1011,6 +1150,12 @@ public class FieldSystem : MonoBehaviour
         var ret = new List<AI_AttackTarget>();
         foreach (var move in moves)
         {
+            if (move.current != own.GetLocation())
+            {
+                // 自分以外の誰かが居たらそこからの攻撃はできない
+                if (GetCellCharacter(move.current) != null) continue;
+            }
+
             var atkCells = GetRangeLocations(move.current, rangeMin, rangeMax);
             foreach (var cell in atkCells)
             {
@@ -1053,7 +1198,7 @@ public class FieldSystem : MonoBehaviour
     /// <summary>
     /// ターゲットと戦闘結果の保持
     /// </summary>
-    private class AITargetResult
+    public class AITargetResult
     {
         public AI_AttackTarget tgt;
         public GameParameter.BattleParameter btl;
@@ -1064,7 +1209,7 @@ public class FieldSystem : MonoBehaviour
     /// </summary>
     /// <param name="attackable"></param>
     /// <returns></returns>
-    public AI_AttackTarget SelectAIAttack(CharacterBase own, List<AI_AttackTarget> attackable)
+    public AITargetResult SelectAIAttack(CharacterBase own, List<AI_AttackTarget> attackable)
     {
         if (attackable.Count == 0) return null;
 
@@ -1095,23 +1240,23 @@ public class FieldSystem : MonoBehaviour
         }
 
         // 倒せるのがあれば選択
-        if (niceList.Count > 0) return niceList[0].tgt;
+        if (niceList.Count > 0) return niceList[0];
 
         // 自分がくらわないリストから一番与ダメが大きいのを選択
         if (safeList.Count > 0)
-            return safeList.OrderByDescending(ai => ai.btl.a_dmg).First().tgt;
+            return safeList.OrderByDescending(ai => ai.btl.a_dmg).First();
 
         // 通常リストから一番与ダメが大きいのを選択
         if (normalList.Count > 0)
-            return normalList.OrderByDescending(ai => ai.btl.a_dmg).First().tgt;
+            return normalList.OrderByDescending(ai => ai.btl.a_dmg).First();
 
         // ゼロから自分のダメージが小さいのを選択
         if (zeroList.Count > 0)
-            return zeroList.OrderBy(ai => ai.btl.d_dmg).First().tgt;
+            return zeroList.OrderBy(ai => ai.btl.d_dmg).First();
 
         // 自分がやられるのから一番与ダメが大きいのを選択
         if (dangerList.Count > 0)
-            return dangerList.OrderByDescending(ai => ai.btl.a_dmg).First().tgt;
+            return dangerList.OrderByDescending(ai => ai.btl.a_dmg).First();
 
         return null;
     }

@@ -43,11 +43,12 @@ public class GeneralResources : MonoBehaviour
     /// <returns></returns>
     public Sprite GetFaceIconE(Constant.EnemyID eid)
     {
-        return eid switch
-        {
-            Constant.EnemyID.GreenSlime => face_Monster,
-            _ => face_Monster,
-        };
+        return face_Monster;
+        //return eid switch
+        //{
+        //    Constant.EnemyID.GreenSlime => face_Monster,
+        //    _ => face_Monster,
+        //};
     }
 
     #endregion

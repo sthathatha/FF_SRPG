@@ -123,8 +123,11 @@ public class PlayerCharacter : CharacterBase
         var wid = GetEquipWeapon();
         var wpnData = GameDatabase.ItemDataList[(int)wid];
 
-        //todo:ƒXƒLƒ‹‚ÅŽË’öL‚Ñ‚é
-        return wpnData.rangeMax;
+        // ƒXƒLƒ‹‚ÅŽË’öL‚Ñ‚é
+        var plus = 0;
+        if (HasSkill(GameDatabase.SkillID.Worra_LongShot)) plus += 1;
+
+        return wpnData.rangeMax + plus;
     }
 
     #endregion
@@ -218,7 +221,7 @@ public class PlayerCharacter : CharacterBase
         base.CheckDeleteSkill();
 
         var prm = GetSaveParameter();
-        for(var i = prm.Skills.Count-1; i >= 0; --i)
+        for (var i = prm.Skills.Count - 1; i >= 0; --i)
         {
             var s = GameDatabase.SkillDataList[prm.Skills[i]];
             if (s.canKeep) continue;

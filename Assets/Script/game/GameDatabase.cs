@@ -46,12 +46,12 @@ public class GameDatabase
 
     /// <summary>プレイヤー成長率％</summary>
     public static readonly ParameterData[] Prm_PlayerGrow = new ParameterData[] {
-        new ParameterData(70, 130, 0, 45, 40, 40, 30, 10, 0),
-        new ParameterData(100, 45, 5, 35, 20, 30, 60, 40, 0),
-        new ParameterData(85, 50, 10, 55, 45, 20, 40, 25, 0),
-        new ParameterData(60, 40, 20, 50, 65, 40, 20, 40, 0),
+        new ParameterData(70, 130, 0, 45, 40, 50, 30, 10, 0),
+        new ParameterData(100, 45, 15, 35, 20, 30, 60, 40, 0),
+        new ParameterData(85, 50, 20, 55, 45, 20, 40, 25, 0),
+        new ParameterData(60, 40, 25, 50, 65, 40, 20, 40, 0),
         new ParameterData(50, 15, 70, 40, 30, 60, 15, 55, 0),
-        new ParameterData(65, 55, 25, 50, 50, 45, 25, 30, 0),
+        new ParameterData(65, 55, 20, 50, 50, 45, 25, 30, 0),
     };
 
     /// <summary>
@@ -105,7 +105,7 @@ public class GameDatabase
         new ParameterData(2, 7, 0, 6, 3, 0, 0, 1, 0),
         new ParameterData(0, 8, 0, 6, 7, 0, -3, 0, 2),
         new ParameterData(3, 3, 0, 4, 1, 0, 2, 6, 1),
-        new ParameterData(1, 5, 0, 2, 2, 3, 1, 5, 1),
+        new ParameterData(1, 3, 0, 2, 4, 3, 1, 5, 1),
         new ParameterData(0, 4, 0, 4, 5, 0, 1, 4, 2),
     };
     /// <summary>クラスチェンジ成長値_エグザ</summary>
@@ -122,9 +122,9 @@ public class GameDatabase
         new ParameterData(),
         new ParameterData(3, 3, 0, 5, 1, 0, 5, 1, 1),
         new ParameterData(5, 1, 0, 3, 4, 0, 3, 2, 1),
-        new ParameterData(1, 4, 3, 6, 0, 2, 4, 2, 1),
+        new ParameterData(1, 3, 3, 6, 0, 2, 3, 2, 1),
         new ParameterData(3, 5, 1, 4, 2, 0, 1, 3, 1),
-        new ParameterData(1, 7, 0, 5, 6, -2, 1, 1, 2),
+        new ParameterData(1, 5, 0, 5, 6, 0, 1, 1, 2),
     };
     /// <summary>クラスチェンジ成長値_クー</summary>
     public static readonly ParameterData[] Prm_ClassChangeGrow_Koob = new ParameterData[] {
@@ -279,23 +279,53 @@ public class GameDatabase
     /// <summary>敵Lv1</summary>
     public static readonly ParameterData[] Prm_EnemyInit = new ParameterData[]
     {
-        new ParameterData(15, 6, 1, 4, 3, 6, 8, 1, 4), // グリーンスライム
-        new ParameterData(18, 4, 1, 7, 5, 3, 4, 2, 4), // スケルトン（剣）
-        new ParameterData(18, 5, 1, 6, 4, 2, 6, 2, 4), // スケルトン（槍）
-        new ParameterData(18, 7, 1, 7, 3, 2, 4, 2, 4), // スケルトン（斧）
-        new ParameterData(15, 5, 1, 8, 7, 2, 4, 2, 4), // スケルトン（弓）
-        new ParameterData(12, 1, 8, 2, 6, 8, 2, 4, 3), // ペル
+        new(15, 6, 0, 4, 3, 6, 8, 1, 4),        // グリーンスライム
+        new(18, 5, 0, 7, 5, 3, 5, 3, 4),        // スケルトン（剣）
+        new(18, 6, 0, 4, 4, 2, 11, 1, 3),       // スケルトン（槍）
+        new(18, 7, 0, 3, 4, 2, 7, 3, 4),        // スケルトン（斧）
+        new(15, 5, 0, 8, 7, 2, 5, 3, 4),        // スケルトン（弓）
+        new(13, 0, 6, 7, 5, 2, 4, 8, 4),        // スケルトン（魔）
+        new(9, 0, 8, 3, 7, 8, 1, 10, 5),        // ペル
+        new(12, 14, 0, 9, 6, 5, 6, 1, 4),       // バーンスライム
+        new(11, 10, 0, 7, 12, 7, 5, 1, 6),      // エレキスライム
+        new(17, 0, 10, 5, 5, 5, 4, 8, 3),       // ディープスライム
+        new(24, 12, 0, 10, 2, 8, 20, 14, 1),    // メタルスライム
+        new(20, 11, 0, 9, 6, 6, 5, 5, 4),       // エンジェルス
+        new(20, 11, 0, 9, 6, 7, 5, 5, 4),       // アークエンジェルス
+        new(20, 11, 0, 9, 6, 8, 6, 7, 4),       // プリンシパリティーズ
+        new(20, 12, 0, 9, 7, 8, 7, 5, 5),       // パワーズ
+        new(20, 12, 0, 10, 7, 9, 7, 5, 5),      // ヴァーチャーズ
+        new(20, 12, 0, 10, 7, 9, 8, 6, 5),      // ドミニオンズ
+        new(20, 12, 0, 10, 7, 10, 6, 8, 6),     // トロウンズ
+        new(20, 0, 13, 10, 8, 10, 8, 9, 6),     // ケルビム
+        new(20, 13, 0, 10, 8, 10, 9, 8, 6),     // セラフィム
+        new(20, 14, 14, 11, 8, 11, 9, 9, 7),    // 『尊きもの』
     };
 
     /// <summary>敵成長率％</summary>
     public static readonly ParameterData[] Prm_EnemyGrow = new ParameterData[]
     {
-        new ParameterData(75, 30, 5, 20, 15, 30, 40, 5, 0),  // グリーンスライム
-        new ParameterData(90, 20, 5, 35, 25, 15, 20, 10, 0), // スケルトン（剣）
-        new ParameterData(90, 25, 5, 30, 20, 10, 30, 10, 0), // スケルトン（槍）
-        new ParameterData(90, 35, 5, 35, 15, 10, 20, 10, 0), // スケルトン（斧）
-        new ParameterData(75, 25, 5, 40, 35, 10, 20, 10, 0), // スケルトン（弓）
-        new ParameterData(60, 5, 40, 10, 30, 40, 10, 20, 0), // ペル
+        new(75, 30, 1, 20, 15, 30, 40, 5, 0),     // グリーンスライム
+        new(90, 25, 1, 35, 25, 15, 25, 15, 0),    // スケルトン（剣）
+        new(90, 30, 1, 20, 20, 10, 55, 5, 0),     // スケルトン（槍）
+        new(90, 35, 1, 15, 20, 10, 35, 15, 0),    // スケルトン（斧）
+        new(75, 25, 1, 40, 35, 10, 25, 15, 0),    // スケルトン（弓）
+        new(65, 1, 30, 35, 25, 10, 20, 40, 0),    // スケルトン（魔）
+        new(45, 1, 40, 15, 35, 40, 5, 50, 0),     // ペル
+        new(60, 70, 1, 45, 30, 25, 30, 5, 0),     // バーンスライム
+        new(55, 50, 1, 35, 60, 35, 25, 5, 0),     // エレキスライム
+        new(85, 1, 50, 25, 25, 25, 20, 40, 0),    // ディープスライム
+        new(120, 60, 1, 50, 10, 40, 100, 70, 0),  // メタルスライム
+        new(100, 55, 1, 45, 30, 30, 25, 25, 0),   // エンジェルス
+        new(100, 55, 1, 45, 30, 35, 25, 25, 0),   // アークエンジェルス
+        new(100, 55, 1, 45, 30, 40, 30, 35, 0),   // プリンシパリティーズ
+        new(100, 60, 1, 45, 35, 40, 35, 25, 0),   // パワーズ
+        new(100, 60, 1, 50, 35, 45, 35, 25, 0),   // ヴァーチャーズ
+        new(100, 60, 1, 50, 35, 45, 40, 30, 0),   // ドミニオンズ
+        new(100, 60, 1, 50, 35, 50, 30, 40, 0),   // トロウンズ
+        new(100, 1, 65, 50, 40, 50, 40, 45, 0),   // ケルビム
+        new(100, 65, 1, 50, 40, 50, 45, 40, 0),   // セラフィム
+        new(100, 70, 70, 55, 40, 55, 45, 45, 0),  // 『尊きもの』
     };
 
     /// <summary>
@@ -318,14 +348,30 @@ public class GameDatabase
         }
     }
 
+    /// <summary>敵特殊パラメータ</summary>
     public static readonly EnemyOtherData[] Prm_EnemyOther = new EnemyOtherData[]
     {
-        new EnemyOtherData(ItemType.None, 1, new Color(0.4f, 1f, 0.4f)),
-        new EnemyOtherData(ItemType.Sword, 3),
-        new EnemyOtherData(ItemType.Spear, 4),
-        new EnemyOtherData(ItemType.Axe, 2),
-        new EnemyOtherData(ItemType.Arrow, 3),
-        new EnemyOtherData(ItemType.None, 5),
+        new(ItemType.None, 1, new Color(0.4f, 1, 0.4f)),      // グリーンスライム
+        new(ItemType.Sword, 3),         // スケルトン（剣）
+        new(ItemType.Spear, 4),         // スケルトン（槍）
+        new(ItemType.Axe, 2),           // スケルトン（斧）
+        new(ItemType.Arrow, 3),         // スケルトン（弓）
+        new(ItemType.Book, 5),          // スケルトン（魔）
+        new(ItemType.None, 7),          // ペル
+        new(ItemType.None, 21, new Color(1, 0.3f, 0.1f)),     // バーンスライム
+        new(ItemType.None, 21, new Color(1, 1, 0f)),          // エレキスライム
+        new(ItemType.None, 21, new Color(0, 0, 0.8f)),        // ディープスライム
+        new(ItemType.None, 31, new Color(0.7f, 0.7f, 0.7f)),  // メタルスライム
+        new(ItemType.Arrow, 101),       // エンジェルス
+        new(ItemType.Sword, 104),       // アークエンジェルス
+        new(ItemType.Spear, 107),       // プリンシパリティーズ
+        new(ItemType.Axe, 110),         // パワーズ
+        new(ItemType.Arrow, 113),       // ヴァーチャーズ
+        new(ItemType.Spear, 116),       // ドミニオンズ
+        new(ItemType.Axe, 119),         // トロウンズ
+        new(ItemType.Book, 121),        // ケルビム
+        new(ItemType.Sword, 124),       // セラフィム
+        new(ItemType.Book, 127),        // 『尊きもの』
     };
 
     /// <summary>
@@ -349,7 +395,7 @@ public class GameDatabase
 
             koho.Add((Constant.EnemyID)i);
         }
-        if (koho.Count == 0) return Constant.EnemyID.GreenSlime;
+        if (koho.Count == 0) return Constant.EnemyID.SlimeGreen;
 
         // 候補からrarelityによって確率で判定
         var kohoRarelity = koho.Select(id => floor - Prm_EnemyOther[(int)id].rarelity + 1).ToList();
@@ -451,21 +497,29 @@ public class GameDatabase
         };
     }
 
-    /// <summary>スキル名</summary>
-    public static readonly string[] Name_Skills =
-    {
-
-    };
-
     /// <summary>敵名</summary>
     public static readonly string[] Name_Enemies =
     {
-        "グリーンスライム",
-        "スケルトン",
-        "スケルトン",
-        "スケルトン",
-        "スケルトン",
+        "スケルトン（剣）",
+        "スケルトン（槍）",
+        "スケルトン（斧）",
+        "スケルトン（弓）",
+        "スケルトン（魔）",
         "ペル",
+        "バーンスライム",
+        "エレキスライム",
+        "ディープスライム",
+        "メタルスライム",
+        "エンジェルス",
+        "アークエンジェルス",
+        "プリンシパリティーズ",
+        "パワーズ",
+        "ヴァーチャーズ",
+        "ドミニオンズ",
+        "トロウンズ",
+        "ケルビム",
+        "セラフィム",
+        "『尊きもの』",
     };
 
     #endregion
@@ -495,9 +549,9 @@ public class GameDatabase
         Koob_World,
         Koob_Zenius,
         Koob_Archemy,
-        You_FastAttack,
         You_StrongAttack,
-        You_FastCounter,
+        You_StealthAttack,
+        You_CounterPlus,
 
         SKILL_COUNT,
     }
@@ -538,18 +592,18 @@ public class GameDatabase
         new (Constant.PlayerID.Eraps, Constant.ClassID.A2, 10, "敵は隣接マスを通過できない"),
         new (Constant.PlayerID.Eraps, Constant.ClassID.AB, 10, "フロアの1ターン目のみ移動力+4"),
         new (Constant.PlayerID.Eraps, Constant.ClassID.B2, 10, "距離に関係なく反撃できる"),
-        new (Constant.PlayerID.Exa, Constant.ClassID.A2, 10, "周囲2マスの味方の守備、魔防+10％"),
+        new (Constant.PlayerID.Exa, Constant.ClassID.A2, 10, "周囲2マスの味方の防御+30％"),
         new (Constant.PlayerID.Exa, Constant.ClassID.AB, 10, "周囲2マスの味方の命中、回避、必殺+20"),
-        new (Constant.PlayerID.Exa, Constant.ClassID.B2, 10, "周囲2マスに味方が居ない時攻撃+10、防御+10"),
+        new (Constant.PlayerID.Exa, Constant.ClassID.B2, 10, "周囲2マスに味方が居ない時攻撃、防御+10"),
         new (Constant.PlayerID.Worra, Constant.ClassID.A2, 10, "最大射程+1"),
         new (Constant.PlayerID.Worra, Constant.ClassID.AB, 10, "移動+1"),
         new (Constant.PlayerID.Worra, Constant.ClassID.B2, 10, "回避+30"),
         new (Constant.PlayerID.Koob, Constant.ClassID.A2, 10, "必ず武器相性が有利になる"),
         new (Constant.PlayerID.Koob, Constant.ClassID.AB, 10, "取得経験値+50％"),
         new (Constant.PlayerID.Koob, Constant.ClassID.B2, 10, "武器を壊した時、稀に同種の武器を生成する"),
-        new (Constant.PlayerID.You, Constant.ClassID.A2, 10, "追撃する時、敵より先に行動する"),
-        new (Constant.PlayerID.You, Constant.ClassID.AB, 10, "自分から攻撃する時、武器の威力+10"),
-        new (Constant.PlayerID.You, Constant.ClassID.B2, 10, "反撃する時、敵より先に行動する"),
+        new (Constant.PlayerID.You, Constant.ClassID.A2, 10, "自分から攻撃する時、攻撃+10"),
+        new (Constant.PlayerID.You, Constant.ClassID.AB, 10, "自分から攻撃する時、反撃されない"),
+        new (Constant.PlayerID.You, Constant.ClassID.B2, 10, "反撃する時、攻撃回数+1"),
     };
 
     #endregion

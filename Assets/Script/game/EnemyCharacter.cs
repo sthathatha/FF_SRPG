@@ -144,7 +144,7 @@ public class EnemyCharacter : CharacterBase
         var resources = field.GetComponent<FieldCharacterModels>();
         anim.runtimeAnimatorController = eid switch
         {
-            Constant.EnemyID.GreenSlime => resources.anim_slime_base,
+            Constant.EnemyID.SlimeGreen => resources.anim_slime_base,
             _ => resources.anim_slime_base,
         };
 

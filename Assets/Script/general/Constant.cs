@@ -74,19 +74,32 @@ public class Constant
     }
 
     /// <summary>
-    /// 
-    /// </summary>
-    public enum SkillID
-    {
-
-    }
-
-    /// <summary>
     /// “GƒLƒƒƒ‰ID
     /// </summary>
     public enum EnemyID
     {
-        GreenSlime = 0,
+        SlimeGreen = 0,
+        SkeletonSword,
+        SkeletonSpear,
+        SkeletonAxe,
+        SkeletonArrow,
+        SkeletonBook,
+        Pel,
+        SlimeBurn,
+        SlimeElec,
+        SlimeDeep,
+        SlimeMetal,
+
+        Angel,
+        ArchAngel,
+        Principality,
+        Power,
+        Virtue,
+        Dominion,
+        Throne,
+        Cherubim,
+        Seraphim,
+        Prime,
 
         ENEMY_COUNT,
     }

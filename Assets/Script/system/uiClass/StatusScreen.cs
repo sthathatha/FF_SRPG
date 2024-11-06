@@ -110,6 +110,9 @@ public class StatusScreen : MonoBehaviour
         txt_move.SetText(chr.param.Move.ToString());
         txt_lv.SetText(chr.param.Lv.ToString());
 
+        foreach (var s in skills) Destroy(s.gameObject);
+        skills.Clear();
+
         if (chr.IsPlayer())
         {
             DispPlayerParameter((PlayerCharacter)chr);
@@ -154,8 +157,6 @@ public class StatusScreen : MonoBehaviour
         faceImage.sprite = ManagerSceneScript.GetInstance().generalResources.GetFaceIconP(chr.playerID);
 
         // ÉXÉLÉã
-        foreach (var s in skills) Destroy(s.gameObject);
-        skills.Clear();
         foreach (var sid in saveParam.Skills)
         {
             var s = Instantiate(skill_dummy, skill_parent, false);

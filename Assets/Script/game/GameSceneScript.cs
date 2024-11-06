@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 using static GameDatabase;
 
@@ -91,6 +90,7 @@ public class GameSceneScript : MainScriptBase
 
             yield return PlayerTurn();
             field.ResetAllActable();
+            field.ClearTiles();
 
             if (Gameover_Check()) break;
             if (NextFloor_Check())
@@ -101,6 +101,7 @@ public class GameSceneScript : MainScriptBase
 
             yield return EnemyTurn();
             field.ResetAllActable();
+            field.ClearTiles();
 
             if (Gameover_Check()) break;
             if (NextFloor_Check())
@@ -138,6 +139,38 @@ public class GameSceneScript : MainScriptBase
 
         while (true)
         {
+            // バーサーカーキャラが居る場合自動行動
+            var berserkChrs = field.GetPlayers().Where(pc => pc.HasSkill(SkillID.Drows_Berserk)).ToList();
+            var berserkAct = false;
+            foreach (var ber in berserkChrs)
+            {
+                // 行動終了している
+                if (!ber.turnActable) continue;
+
+                // 移動可能リスト
+                var bMoves = field.GetMovableLocations(ber);
+
+                // 射程1に攻撃できないのを持っていたら検索して剣か素手にする
+                var bNowEq = GameDatabase.ItemDataList[(int)ber.GetEquipWeapon()];
+                if (bNowEq.rangeMin != 1)
+                {
+                    GameParameter.otherData.SetEquipIndex(ber.playerID,
+                        GameParameter.otherData.GetUsableEquip(ber.playerID));
+                }
+
+                // 攻撃可能リスト
+                var bAtks = field.GetAttackableCharacters(ber, bMoves, 1, 1);
+                if (bAtks.Count == 0) continue;
+                berserkAct = true;
+
+                // 攻撃対象選択
+                var bAtkSel = field.SelectAIAttack(ber, bAtks);
+
+                // 攻撃
+                yield return AIAttackCoroutine(ber, bAtkSel);
+            }
+            if (berserkAct) continue;
+
             // クリック待ち
             yield return field.WaitInput(true);
 
@@ -156,10 +189,14 @@ public class GameSceneScript : MainScriptBase
             else if (!chr.IsPlayer())
             {
                 // 敵をクリックした場合
-                var moveList = field.GetMovableLocations(chr);
+                var moveList = field.GetMovableLocations(chr).Select(h => h.current).ToList();
                 // 移動可能場所を表示
                 field.ClearTiles();
-                field.ShowTile(moveList.Select(h => h.current).ToList(), COLOR_TILE_MOVE);
+                field.ShowTile(moveList, COLOR_TILE_MOVE);
+                // 攻撃可能場所
+                var atkList = field.GetAttackableLocations(chr, moveList).Where(l => !moveList.Contains(l)).ToList();
+                field.ShowTile(atkList, COLOR_TILE_ATTACK);
+
                 continue;
             }
             else if (chr.IsPlayer() && chr.turnActable)
@@ -317,7 +354,9 @@ public class GameSceneScript : MainScriptBase
 
             // 選んだ選択肢
             var selItem = itemui.Result_SelectData;
-            var selAtkCells = field.GetRangeLocations(pc.GetLocation(), selItem.rangeMin, selItem.rangeMax);
+            var rangePlus = 0;
+            if (pc.HasSkill(SkillID.Worra_LongShot)) rangePlus += 1;
+            var selAtkCells = field.GetRangeLocations(pc.GetLocation(), selItem.rangeMin, selItem.rangeMax + rangePlus);
             if (selItem.iType == GameDatabase.ItemType.Item ||
                 selItem.iType == GameDatabase.ItemType.Rod)
                 field.ShowTile(selAtkCells, COLOR_TILE_HEAL);
@@ -372,13 +411,14 @@ public class GameSceneScript : MainScriptBase
     /// 行動終了セット
     /// </summary>
     /// <param name="pc"></param>
-    private void PTurnSetActEnd(PlayerCharacter pc)
+    /// <param name="skillContinue"></param>
+    private void PTurnSetActEnd(PlayerCharacter pc, bool skillContinue = false)
     {
         // ロード禁止フラグセット
         field.LoadDisableSet();
 
         // 敵がもう居なかったら終了しない
-        if (field.GetEnemies().Count == 0)
+        if (field.GetEnemies().Count == 0 || skillContinue)
         {
             pc.PlayAnim(Constant.Direction.None);
             field.ResetAllActable();
@@ -445,22 +485,31 @@ public class GameSceneScript : MainScriptBase
             }
             else
             {
-                // 移動
-                yield return enm.Walk(atkAI.moveHist);
-                enm.SetLocation(atkAI.moveHist.current);
-
-                // 攻撃表示
-                field.ShowTile(new List<Vector2Int>() { atkAI.target.GetLocation() }, COLOR_TILE_ATTACK);
-                yield return new WaitForSeconds(0.5f);
-                field.ClearTiles();
-
-                // 攻撃する
-                var battleParam = GameParameter.GetBattleParameter(enm, atkAI.target);
-                yield return TurnBattleCoroutine(battleParam, enm, atkAI.target, null);
-
-                yield return new WaitForSeconds(0.3f);
+                yield return AIAttackCoroutine(enm, atkAI);
             }
         }
+    }
+
+    /// <summary>
+    /// AI攻撃演出コルーチン
+    /// </summary>
+    /// <param name="atkChr">攻撃するキャラ</param>
+    /// <param name="ai">攻撃情報</param>
+    /// <returns></returns>
+    private IEnumerator AIAttackCoroutine(CharacterBase atkChr, FieldSystem.AITargetResult ai)
+    {
+        yield return atkChr.Walk(ai.tgt.moveHist);
+        atkChr.SetLocation(ai.tgt.moveHist.current);
+
+        // 攻撃表示
+        field.ShowTile(new List<Vector2Int>() { ai.tgt.target.GetLocation() }, COLOR_TILE_ATTACK);
+        yield return new WaitForSeconds(0.5f);
+        field.ClearTiles();
+
+        // 攻撃する
+        yield return TurnBattleCoroutine(ai.btl, atkChr, ai.tgt.target, null);
+
+        yield return new WaitForSeconds(0.3f);
     }
 
     #endregion
@@ -494,6 +543,7 @@ public class GameSceneScript : MainScriptBase
         atkChr.PlayAnim(Util.GetDirectionFromVec(aDist));
         defChr.PlayAnim(Util.GetDirectionFromVec(dDist));
 
+        var breakChr = (PlayerCharacter)null;
         var weaponBreak = -1;
         var weaponDrop = GameDatabase.ItemID.FreeHand;
         var phase = 0;
@@ -558,9 +608,10 @@ public class GameSceneScript : MainScriptBase
             // 武器消耗
             if (chrA.IsPlayer())
             {
-                var breakIdx = BattleWeaponDecrease(chrA as PlayerCharacter, true);
+                var breakIdx = BattleWeaponDecrease(chrA as PlayerCharacter, atkTurn);
                 if (breakIdx >= 0)
                 {
+                    breakChr = chrA as PlayerCharacter;
                     weaponBreak = breakIdx;
                     // 壊れたら最後の攻撃にする
                     if (atkTurn) param.a_atkCount = 1;
@@ -620,7 +671,13 @@ public class GameSceneScript : MainScriptBase
 
         if (atkChr != null)
         {
-            if (atkChr.IsPlayer()) PTurnSetActEnd(atkChr as PlayerCharacter);
+            if (atkChr.IsPlayer())
+            {
+                if (atkChr.HasSkill(SkillID.Drows_Tornaid) && phase == 0 && expTmp_defeat)
+                    PTurnSetActEnd(atkChr as PlayerCharacter, true);
+                else
+                    PTurnSetActEnd(atkChr as PlayerCharacter);
+            }
             else atkChr.SetActable(false);
         }
         defChr?.PlayAnim(Constant.Direction.None);
@@ -638,7 +695,7 @@ public class GameSceneScript : MainScriptBase
         // 武器破壊処理
         if (weaponBreak >= 0)
         {
-            yield return BattleWeaponBreak(weaponBreak);
+            yield return BattleWeaponBreak(breakChr, weaponBreak);
         }
         // アイテムドロップ処理
         if (weaponDrop != GameDatabase.ItemID.FreeHand)
@@ -702,7 +759,7 @@ public class GameSceneScript : MainScriptBase
         itm.useCount--;
         if (itm.useCount <= 0)
         {
-            yield return BattleWeaponBreak(itemIndex);
+            yield return BattleWeaponBreak(pc, itemIndex);
         }
     }
 
@@ -739,15 +796,27 @@ public class GameSceneScript : MainScriptBase
     /// <summary>
     /// 壊れた武器を削除する演出
     /// </summary>
+    /// <param name="useChr">使ってたキャラ</param>
     /// <param name="idx"></param>
     /// <returns></returns>
-    private IEnumerator BattleWeaponBreak(int idx)
+    private IEnumerator BattleWeaponBreak(PlayerCharacter useChr, int idx)
     {
         var msg = ManagerSceneScript.GetInstance().lineMessageUI;
         var itm = GameParameter.otherData.haveItemList[idx];
+        var data = itm.ItemData;
         yield return msg.ShowCoroutine($"{itm.ItemData.name} が壊れた");
 
         GameParameter.otherData.DeleteItem(idx);
+
+        // 生成
+        if (useChr.HasSkill(SkillID.Koob_Archemy) && Util.RandomCheck(30))
+        {
+            var createId = GameDatabase.CalcRandomItem(field.Prm_BattleFloor, true, false, data.iType);
+            if (createId != ItemID.FreeHand)
+            {
+                yield return BattleWeaponDrop(createId);
+            }
+        }
     }
 
     /// <summary>
@@ -815,6 +884,11 @@ public class GameSceneScript : MainScriptBase
         var manager = ManagerSceneScript.GetInstance();
 
         if (exp == 0 || pc.param.Lv >= 20) yield break;
+        if (pc.HasSkill(SkillID.Koob_Zenius))
+        {
+            exp = exp * 150 / 100;
+            if (exp > 100) exp = 100;
+        }
 
         // UI表示
         yield return cellUI.ShowExpCoroutine(pc.GetLocation(), exp);
@@ -1038,6 +1112,8 @@ public class GameSceneScript : MainScriptBase
     private IEnumerator NextFloorCoroutine()
     {
         yield return field.NextFloor();
+
+        //todo:らンキング登録
     }
 
     #endregion

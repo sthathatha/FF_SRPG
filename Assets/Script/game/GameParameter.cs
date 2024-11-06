@@ -546,6 +546,13 @@ public class GameParameter
         public void AddItem(GameDatabase.ItemID itemID)
         {
             haveItemList.Add(new HaveItemData(itemID));
+
+            // ドロシー以外が素手だったら検索する
+            if (equip_Eraps < 0) equip_Eraps = GetUsableEquip(Constant.PlayerID.Eraps);
+            if (equip_Exa < 0) equip_Exa = GetUsableEquip(Constant.PlayerID.Exa);
+            if (equip_Worra < 0) equip_Worra = GetUsableEquip(Constant.PlayerID.Worra);
+            if (equip_Koob < 0) equip_Koob = GetUsableEquip(Constant.PlayerID.Koob);
+            if (equip_You < 0) equip_You = GetUsableEquip(Constant.PlayerID.You);
         }
 
         /// <summary>
@@ -622,6 +629,10 @@ public class GameParameter
 
         // 武器相性
         var advantage = GameDatabase.CheckWeaponAdvantage(a_weaponId, d_weaponId);
+        if (atkChr.HasSkill(GameDatabase.SkillID.Koob_World) && !defChr.HasSkill(GameDatabase.SkillID.Koob_World))
+            advantage = 1;
+        if (!atkChr.HasSkill(GameDatabase.SkillID.Koob_World) && defChr.HasSkill(GameDatabase.SkillID.Koob_World))
+            advantage = -1;
         #endregion
         var a_melee = a_weaponData.is_melee();
         var d_melee = d_weaponData.is_melee();
@@ -647,11 +658,14 @@ public class GameParameter
         // クリティカル率
         var a_dmgPlus = 0;
         var d_dmgPlus = 0;
+        var a_defPlus = 0;
+        var d_defPlus = 0;
         var a_hitPlus = 0;
         var d_hitPlus = 0;
+        var a_avdPlus = 0;
+        var d_avdPlus = 0;
         var a_crtPlus = 0;
         var d_crtPlus = 0;
-        var d_rangePlus = 0;
         // 武器相性
         if (advantage != 0)
         {
@@ -661,12 +675,39 @@ public class GameParameter
             d_dmgPlus -= advantage;
             d_hitPlus -= advantage * 10;
         }
-        if (atkChr.IsPlayer())
+        // スキルによって命中、回避、必殺等増加
+        var atkChrRound = atkChr.field.GetRangeCharacters(atkLoc, 1, 2);
+        if (atkChr.HasSkill(GameDatabase.SkillID.Drows_Critical)) a_crtPlus += 30;
+        if (atkChr.HasSkill(GameDatabase.SkillID.Worra_Avoid)) a_avdPlus += 30;
+        if (atkChr.HasSkill(GameDatabase.SkillID.You_StrongAttack)) a_dmgPlus += 10;
+        if (atkChrRound.Any(ac => ac.IsPlayer() == atkChr.IsPlayer() && ac.HasSkill(GameDatabase.SkillID.Exa_Guard)))
+            a_defPlus += 30;
+        if (atkChrRound.Any(ac => ac.IsPlayer() == atkChr.IsPlayer() && ac.HasSkill(GameDatabase.SkillID.Exa_Command)))
         {
-            //todo:スキルによって命中、回避、必殺等増加
+            a_hitPlus += 20;
+            a_avdPlus += 20;
+            a_crtPlus += 20;
         }
-        if (defChr.IsPlayer())
+        if (atkChr.HasSkill(GameDatabase.SkillID.Exa_Lonely) && !atkChrRound.Any(ac => ac.IsPlayer() == atkChr.IsPlayer()))
         {
+            a_dmgPlus += 10;
+            a_defPlus += 10;
+        }
+        var defChrRound = atkChr.field.GetRangeCharacters(atkLoc, 1, 2);
+        if (defChr.HasSkill(GameDatabase.SkillID.Drows_Critical)) d_crtPlus += 30;
+        if (defChr.HasSkill(GameDatabase.SkillID.Worra_Avoid)) d_avdPlus += 30;
+        if (defChrRound.Any(dc => dc.IsPlayer() == defChr.IsPlayer() && dc.HasSkill(GameDatabase.SkillID.Exa_Guard)))
+            d_defPlus += 30;
+        if (defChrRound.Any(dc => dc.IsPlayer() == defChr.IsPlayer() && dc.HasSkill(GameDatabase.SkillID.Exa_Command)))
+        {
+            d_hitPlus += 20;
+            d_avdPlus += 20;
+            d_crtPlus += 20;
+        }
+        if (defChr.HasSkill(GameDatabase.SkillID.Exa_Lonely) && !defChrRound.Any(dc => dc.IsPlayer() == defChr.IsPlayer()))
+        {
+            d_dmgPlus += 10;
+            d_defPlus += 10;
         }
         #endregion
 
@@ -679,10 +720,12 @@ public class GameParameter
             !defChr.HasSkill(GameDatabase.SkillID.Drows_FreeHand) &&
             d_weaponId == GameDatabase.ItemID.FreeHand)
             canCounter = false;
-        else if (defChr.HasSkill(GameDatabase.SkillID.Eraps_AllCounter))
+        else if (defChr.HasSkill(GameDatabase.SkillID.Eraps_AllCounter)) // 距離を無視して反撃スキル
             canCounter = true;
+        else if (atkChr.HasSkill(GameDatabase.SkillID.You_StealthAttack)) // 反撃不可スキル
+            canCounter = false;
         else
-            canCounter = distance >= d_weaponData.rangeMin && distance <= d_weaponData.rangeMax + d_rangePlus;
+            canCounter = distance >= defChr.GetRangeMin() && distance <= defChr.GetRangeMax();
         #endregion
 
         #region 攻撃側パラメータ
@@ -719,6 +762,11 @@ public class GameParameter
         // 必殺
         a_crt = CalcWeaponValue(a_crt, a_weaponData.critical + a_crtPlus);
         d_crt = CalcWeaponValue(d_crt, d_weaponData.critical + d_crtPlus);
+
+        if (a_defPlus != 0) a_def += a_def * a_defPlus / 100;
+        if (d_defPlus != 0) d_def += d_def * d_defPlus / 100;
+        if (a_avdPlus != 0) a_avd = CalcWeaponValue(a_avd, a_avdPlus);
+        if (d_avdPlus != 0) d_avd = CalcWeaponValue(d_avd, d_avdPlus);
         #endregion
 
         #region 計算
@@ -733,6 +781,7 @@ public class GameParameter
             ret.d_hit = CalcHitRate(d_hit, a_avd);
             ret.d_critical = CalcHitRate(d_crt, a_acrt);
             ret.d_atkCount = CalcAttackCount(d_spd, a_spd);
+            if (defChr.HasSkill(GameDatabase.SkillID.You_CounterPlus)) ret.d_atkCount++;
         }
         else
         {

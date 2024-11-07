@@ -44,10 +44,10 @@ public class GameDatabase
     public static readonly ParameterData[] Prm_PlayerGrow = new ParameterData[] {
         new ParameterData(70, 130, 0, 45, 40, 50, 35, 10, 0),
         new ParameterData(100, 45, 15, 35, 20, 35, 60, 45, 0),
-        new ParameterData(85, 50, 20, 55, 45, 20, 40, 25, 0),
+        new ParameterData(85, 60, 20, 55, 40, 20, 40, 20, 0),
         new ParameterData(60, 40, 25, 50, 65, 40, 25, 40, 0),
         new ParameterData(50, 15, 70, 40, 35, 60, 15, 55, 0),
-        new ParameterData(65, 55, 20, 50, 50, 45, 30, 30, 0),
+        new ParameterData(65, 50, 20, 50, 55, 45, 30, 30, 0),
     };
 
     /// <summary>

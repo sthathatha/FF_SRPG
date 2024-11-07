@@ -616,25 +616,11 @@ public class GameSceneScript : MainScriptBase
             );
             #endregion
 
-            // ïêäÌè¡ñ’
-            if (chrA.IsPlayer())
-            {
-                var breakIdx = BattleWeaponDecrease(chrA as PlayerCharacter, atkTurn);
-                if (breakIdx >= 0)
-                {
-                    breakChr = chrA as PlayerCharacter;
-                    weaponBreak = breakIdx;
-                    // âÛÇÍÇΩÇÁç≈å„ÇÃçUåÇÇ…Ç∑ÇÈ
-                    if (atkTurn) param.a_atkCount = 1;
-                    else param.d_atkCount = 1;
-                }
-            }
-
             // çUåÇâÒêîÇÇPÇ∏Ç¬å∏ÇÁÇ∑
             if (atkTurn) param.a_atkCount--;
             else param.d_atkCount--;
 
-            // çUåÇë§
+            // çUåÇë§ÉAÉjÉÅÅ[ÉVÉáÉì
             StartCoroutine(chrA.AttackAnim(atkTurn ? aDist : dDist));
             if (atkTurn) CalcAtk(param.a_hit, param.a_critical, param.a_dmg, chrD.param.HP);
             else CalcAtk(param.d_hit, param.d_critical, param.d_dmg, chrD.param.HP);
@@ -642,7 +628,21 @@ public class GameSceneScript : MainScriptBase
             // HPå∏ÇÁÇµÇƒÉQÅ[ÉWçXêV
             if (isHit)
             {
-                if (chrA.IsPlayer()) expTmp_dmg += dmg;
+                if (chrA.IsPlayer())
+                {
+                    expTmp_dmg += dmg;
+
+                    // ïêäÌè¡ñ’
+                    var breakIdx = BattleWeaponDecrease(chrA as PlayerCharacter, atkTurn);
+                    if (breakIdx >= 0)
+                    {
+                        breakChr = chrA as PlayerCharacter;
+                        weaponBreak = breakIdx;
+                        // âÛÇÍÇΩÇÁç≈å„ÇÃçUåÇÇ…Ç∑ÇÈ
+                        if (atkTurn) param.a_atkCount = 1;
+                        else param.d_atkCount = 1;
+                    }
+                }
 
                 chrD.param.HP -= dmg;
                 if (chrD.param.HP < 0) chrD.param.HP = 0;

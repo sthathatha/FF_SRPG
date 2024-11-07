@@ -42,12 +42,12 @@ public class GameDatabase
 
     /// <summary>プレイヤー成長率％</summary>
     public static readonly ParameterData[] Prm_PlayerGrow = new ParameterData[] {
-        new ParameterData(70, 130, 0, 45, 40, 50, 30, 10, 0),
-        new ParameterData(100, 45, 15, 35, 20, 30, 60, 40, 0),
+        new ParameterData(70, 130, 0, 45, 40, 50, 35, 10, 0),
+        new ParameterData(100, 45, 15, 35, 20, 35, 60, 45, 0),
         new ParameterData(85, 50, 20, 55, 45, 20, 40, 25, 0),
-        new ParameterData(60, 40, 25, 50, 65, 40, 20, 40, 0),
-        new ParameterData(50, 15, 70, 40, 30, 60, 15, 55, 0),
-        new ParameterData(65, 55, 20, 50, 50, 45, 25, 30, 0),
+        new ParameterData(60, 40, 25, 50, 65, 40, 25, 40, 0),
+        new ParameterData(50, 15, 70, 40, 35, 60, 15, 55, 0),
+        new ParameterData(65, 55, 20, 50, 50, 45, 30, 30, 0),
     };
 
     /// <summary>
@@ -275,13 +275,13 @@ public class GameDatabase
     /// <summary>敵Lv1</summary>
     public static readonly ParameterData[] Prm_EnemyInit = new ParameterData[]
     {
-        new(15, 6, 0, 4, 3, 6, 8, 1, 4),        // グリーンスライム
+        new(15, 7, 0, 4, 3, 6, 8, 1, 4),        // グリーンスライム
         new(18, 5, 0, 7, 5, 3, 5, 3, 4),        // スケルトン（剣）
         new(18, 6, 0, 4, 4, 2, 11, 1, 3),       // スケルトン（槍）
         new(18, 7, 0, 3, 4, 2, 7, 3, 4),        // スケルトン（斧）
         new(15, 5, 0, 8, 7, 2, 5, 3, 4),        // スケルトン（弓）
         new(13, 0, 6, 7, 5, 2, 4, 8, 4),        // スケルトン（魔）
-        new(9, 0, 8, 3, 7, 8, 1, 10, 5),        // ペル
+        new(9, 0, 9, 3, 7, 8, 1, 10, 5),        // ペル
         new(12, 14, 0, 9, 6, 5, 6, 1, 4),       // バーンスライム
         new(11, 10, 0, 7, 12, 7, 5, 1, 6),      // エレキスライム
         new(17, 0, 10, 5, 5, 5, 4, 8, 3),       // ディープスライム
@@ -301,13 +301,13 @@ public class GameDatabase
     /// <summary>敵成長率％</summary>
     public static readonly ParameterData[] Prm_EnemyGrow = new ParameterData[]
     {
-        new(75, 30, 1, 20, 15, 30, 40, 5, 0),     // グリーンスライム
+        new(75, 35, 1, 20, 15, 30, 40, 5, 0),     // グリーンスライム
         new(90, 25, 1, 35, 25, 15, 25, 15, 0),    // スケルトン（剣）
         new(90, 30, 1, 20, 20, 10, 55, 5, 0),     // スケルトン（槍）
         new(90, 35, 1, 15, 20, 10, 35, 15, 0),    // スケルトン（斧）
         new(75, 25, 1, 40, 35, 10, 25, 15, 0),    // スケルトン（弓）
         new(65, 1, 30, 35, 25, 10, 20, 40, 0),    // スケルトン（魔）
-        new(45, 1, 40, 15, 35, 40, 5, 50, 0),     // ペル
+        new(45, 1, 45, 15, 35, 40, 5, 50, 0),     // ペル
         new(60, 70, 1, 45, 30, 25, 30, 5, 0),     // バーンスライム
         new(55, 50, 1, 35, 60, 35, 25, 5, 0),     // エレキスライム
         new(85, 1, 50, 25, 25, 25, 20, 40, 0),    // ディープスライム

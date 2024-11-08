@@ -14,5 +14,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TitleScene.unity
     guid: 2dd603625496ca846aad8cadce1c66c7
+  - enabled: 1
+    path: Assets/Scenes/DictionaryScene.unity
+    guid: 39ec833055767044ab674e9438822bc7
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 6ccc64cee4455dd47a8b3ef29677067a, type: 2}

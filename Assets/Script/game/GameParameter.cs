@@ -553,6 +553,9 @@ public class GameParameter
             if (equip_Worra < 0) equip_Worra = GetUsableEquip(Constant.PlayerID.Worra);
             if (equip_Koob < 0) equip_Koob = GetUsableEquip(Constant.PlayerID.Koob);
             if (equip_You < 0) equip_You = GetUsableEquip(Constant.PlayerID.You);
+
+            // システムデータの入手フラグ
+            Global.GetSaveData().SetItemGetFlag(itemID);
         }
 
         /// <summary>

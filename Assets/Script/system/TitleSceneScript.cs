@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,6 +16,15 @@ public class TitleSceneScript : MainScriptBase
     #endregion
 
     #region Šî’ê
+
+    /// <summary>
+    /// BGMw’è
+    /// </summary>
+    /// <returns></returns>
+    public override Tuple<SoundManager.FieldBgmType, AudioClip> GetBgm()
+    {
+        return new Tuple<SoundManager.FieldBgmType, AudioClip>(SoundManager.FieldBgmType.Common1, null);
+    }
 
     /// <summary>
     /// ‰Šú‰»
@@ -60,6 +70,6 @@ public class TitleSceneScript : MainScriptBase
     /// </summary>
     public void ClickDictionary()
     {
-
+        ManagerSceneScript.GetInstance().LoadMainScene("DictionaryScene", 0);
     }
 }

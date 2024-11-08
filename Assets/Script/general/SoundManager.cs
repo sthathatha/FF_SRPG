@@ -38,6 +38,9 @@ public class SoundManager : MonoBehaviour
     public AudioClip commonSeWindowOpen = null;
     /// <summary>汎用エラー音ブブッ</summary>
     public AudioClip commonSeError = null;
+
+    /// <summary>汎用BGM</summary>
+    public AudioClip commonBgm = null;
     #endregion
 
     #region プライベート変数
@@ -176,14 +179,11 @@ public class SoundManager : MonoBehaviour
     {
         if (IsNeedChangeFieldBgm(fieldBgmType))
         {
-            //var clip = fieldBgmType switch
-            //{
-            //    FieldBgmType.Common1 => commonBgm1,
-            //    FieldBgmType.Common2 => commonBgm2,
-            //    FieldBgmType.Common3 => commonBgm3,
-            //    _ => source,
-            //};
-            var clip = source;
+            var clip = fieldBgmType switch
+            {
+                FieldBgmType.Common1 => commonBgm,
+                _ => source,
+            };
             if (clip != null)
             {
                 fieldBgmSource.volume = CalcBgmVolume();

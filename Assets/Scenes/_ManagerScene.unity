@@ -1613,6 +1613,7 @@ MonoBehaviour:
   commonSeMove: {fileID: 0}
   commonSeWindowOpen: {fileID: 0}
   commonSeError: {fileID: 0}
+  commonBgm: {fileID: 8300000, guid: 8dff4eef11ee4d8428ef56cbc28f4367, type: 3}
 --- !u!4 &77933586
 Transform:
   m_ObjectHideFlags: 0

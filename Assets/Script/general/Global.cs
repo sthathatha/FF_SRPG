@@ -72,6 +72,9 @@ public class Global
 
             ///// <summary>クリアフラグ</summary>
             //public int clearFlag;
+
+            /// <summary>アイテム取得フラグ</summary>
+            public List<int> getItems;
         }
 
         /// <summary>
@@ -85,6 +88,26 @@ public class Global
             system.seVolume = 3;
             //system.voiceVolume = 3;
             //system.clearFlag = 0;
+
+            system.getItems = new List<int>();
+            for (var i = 0; i < (int)GameDatabase.ItemID.ITEM_COUNT; ++i) system.getItems.Add(0);
+            // 初期入手アイテム
+            SetItemGetFlag(GameDatabase.ItemID.Rod1);
+            SetItemGetFlag(GameDatabase.ItemID.Item1);
+            SetItemGetFlag(GameDatabase.ItemID.Sword1);
+            SetItemGetFlag(GameDatabase.ItemID.Spear1);
+            SetItemGetFlag(GameDatabase.ItemID.Axe1);
+            SetItemGetFlag(GameDatabase.ItemID.Arrow1);
+            SetItemGetFlag(GameDatabase.ItemID.Book1);
+        }
+
+        /// <summary>
+        /// アイテム入手フラグ
+        /// </summary>
+        /// <param name="itemID"></param>
+        public void SetItemGetFlag(GameDatabase.ItemID itemID)
+        {
+            system.getItems[(int)itemID] = 1;
         }
 
         #region ゲームデータ
@@ -197,6 +220,8 @@ public class Global
             PlayerPrefs.SetInt("optionSeVolume", system.seVolume);
             //PlayerPrefs.SetInt("optionVoiceVolume", system.voiceVolume);
 
+            PlayerPrefs.SetString("systemItemGet", string.Join(",", system.getItems.Select(i => i.ToString())));
+
             PlayerPrefs.Save();
         }
 
@@ -208,6 +233,15 @@ public class Global
             system.bgmVolume = PlayerPrefs.GetInt("optionBgmVolume", 3);
             system.seVolume = PlayerPrefs.GetInt("optionSeVolume", 3);
             //system.voiceVolume = PlayerPrefs.GetInt("optionVoiceVolume", 3);
+
+            var itemg = PlayerPrefs.GetString("systemItemGet").Split(',');
+            if (!string.IsNullOrEmpty(itemg[0]))
+            {
+                for (var i = 0; i < itemg.Length; ++i)
+                {
+                    system.getItems[i] = int.Parse(itemg[i]);
+                }
+            }
         }
 
         /// <summary>

@@ -151,6 +151,9 @@ public class FieldSystem : MonoBehaviour
         // 直接起動時セーブしない
         if (ManagerSceneScript.isDebugLoad) return;
 
+        // 1Fではセーブしない
+        if (Prm_BattleFloor == 1) return;
+
         var save = Global.GetSaveData();
 
         save.SetGameData(SAVE_PLAYERDATA, string.Join('P', players.Select(p => p.ToSaveString())));
@@ -175,6 +178,9 @@ public class FieldSystem : MonoBehaviour
     {
         // すでに登録不可になっていたら負荷軽減のため無視
         if (!Prm_EnableRanking) return;
+
+        // 1Fではセーブなし
+        if (Prm_BattleFloor == 1) return;
 
         var save = Global.GetSaveData();
         save.SetGameData(SAVE_LOADDISABLE, 1);
@@ -599,15 +605,14 @@ public class FieldSystem : MonoBehaviour
 
         // ドロップアイテムを確実に持っているやつ
         var dropIndex = -1;
-        var weaponTotalRest = GameParameter.otherData.haveItemList.Sum(itm =>
-        {
-            if (itm.ItemData.iType == GameDatabase.ItemType.None ||
-            itm.ItemData.iType == GameDatabase.ItemType.Rod ||
-            itm.ItemData.iType == GameDatabase.ItemType.Item) return 0;
-            else return itm.useCount;
-        });
-        // 袋の武器の合計が10回未満なら確実に武器ドロップ
-        if (weaponTotalRest < 10) dropIndex = Util.RandomInt(0, 4);
+        var haveWeaponList = GameParameter.otherData.haveItemList.Where(itm =>
+                                    itm.ItemData.iType != GameDatabase.ItemType.None &&
+                                    itm.ItemData.iType != GameDatabase.ItemType.Item &&
+                                    itm.ItemData.iType != GameDatabase.ItemType.Rod).ToList();
+        var weaponTotalRest = haveWeaponList.Sum(itm => itm.useCount);
+        var weaponTypeCount = haveWeaponList.Select(itm => itm.ItemData.iType).Distinct().Count();
+        // 袋の武器の合計がx回未満、または武器がy種類なら確実に武器ドロップ
+        if (weaponTotalRest < 10 || weaponTypeCount <= 1) dropIndex = Util.RandomInt(0, 3);
 
         // 4～6体の下級敵を生成
         var weakCnt = Util.RandomInt(4, 6);
@@ -622,7 +627,7 @@ public class FieldSystem : MonoBehaviour
             e.SetCharacter(eid);
             e.InitParameter(lv + Util.RandomInt(0, randMax));
             if (dropIndex == i)
-                e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(Prm_BattleFloor, false));
+                e.SetWeaponAndDrop(drp: GameDatabase.CalcRandomItem(Prm_BattleFloor, true));
             else
                 e.SetWeaponAndDrop();
             enemies.Add(e);

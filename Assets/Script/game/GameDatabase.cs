@@ -200,13 +200,13 @@ public class GameDatabase
         new (100, 50, 100, 30, 10, 10),
         new (150, 80, 80, 10, 10, 10),
         new (120, 120, 120, 50, 10, 10),
-        new (200, 0, 0, 0, 0, 0),
+        new (250, 0, 0, 0, 0, 0),
     };
     /// <summary>クラス毎武器倍率_エラ</summary>
     public static readonly WeaponRate[] Prm_ClassWeaponRates_Eraps = new WeaponRate[]
     {
         new (20, 100, 20, 20, 10, 50),
-        new (50, 100, 50, 20, 10, 50),
+        new (50, 100, 50, 50, 10, 50),
         new (20, 120, 20, 20, 10, 50),
         new (100, 100, 100, 50, 10, 50),
         new (100, 120, 50, 50, 10, 100),
@@ -216,21 +216,21 @@ public class GameDatabase
     public static readonly WeaponRate[] Prm_ClassWeaponRates_Exa = new WeaponRate[]
     {
         new (10, 50, 100, 10, 30, 30),
-        new (10, 50, 100, 10, 30, 30),
+        new (50, 50, 100, 10, 30, 30),
         new (10, 50, 120, 10, 30, 30),
-        new (50, 100, 100, 50, 30, 50),
-        new (100, 50, 100, 10, 30, 30),
+        new (50, 100, 100, 50, 100, 50),
+        new (100, 50, 120, 10, 30, 30),
         new (10, 50, 150, 10, 30, 30),
     };
     /// <summary>クラス毎武器倍率_ウーラ</summary>
     public static readonly WeaponRate[] Prm_ClassWeaponRates_Worra = new WeaponRate[]
     {
         new (10, 10, 10, 100, 10, 50),
-        new (10, 10, 10, 120, 30, 50),
-        new (10, 10, 10, 100, 30, 100),
-        new (10, 10, 10, 150, 30, 50),
-        new (50, 10, 10, 120, 30, 100),
-        new (100, 10, 10, 100, 30, 100),
+        new (10, 10, 10, 120, 50, 50),
+        new (50, 10, 10, 100, 30, 100),
+        new (10, 10, 10, 150, 100, 50),
+        new (70, 30, 30, 120, 100, 100),
+        new (100, 10, 100, 100, 70, 100),
     };
     /// <summary>クラス毎武器倍率_クー</summary>
     public static readonly WeaponRate[] Prm_ClassWeaponRates_Koob = new WeaponRate[]
@@ -245,12 +245,12 @@ public class GameDatabase
     /// <summary>クラス毎武器倍率_悠</summary>
     public static readonly WeaponRate[] Prm_ClassWeaponRates_You = new WeaponRate[]
     {
-        new (110, 10, 10, 10, 50, 50),
-        new (130, 10, 10, 10, 50, 50),
         new (120, 10, 10, 10, 50, 50),
-        new (150, 10, 10, 10, 50, 50),
-        new (120, 120, 10, 10, 50, 50),
-        new (130, 10, 100, 10, 50, 50),
+        new (150, 10, 50, 10, 50, 50),
+        new (120, 10, 50, 50, 50, 50),
+        new (180, 10, 50, 10, 50, 50),
+        new (120, 120, 70, 50, 50, 50),
+        new (150, 10, 100, 100, 50, 50),
     };
 
     /// <summary>クラスチェンジ成長値取得</summary>
@@ -310,7 +310,7 @@ public class GameDatabase
         new(45, 1, 45, 15, 35, 40, 5, 50, 0),     // ペル
         new(60, 70, 1, 45, 30, 25, 30, 5, 0),     // バーンスライム
         new(55, 50, 1, 35, 60, 35, 25, 5, 0),     // エレキスライム
-        new(85, 1, 50, 25, 25, 25, 20, 40, 0),    // ディープスライム
+        new(95, 1, 65, 30, 15, 15, 25, 35, 0),    // ディープスライム
         new(120, 60, 1, 50, 10, 40, 100, 70, 0),  // メタルスライム
         new(100, 55, 1, 45, 30, 30, 25, 25, 0),   // エンジェルス
         new(100, 55, 1, 45, 30, 35, 25, 25, 0),   // アークエンジェルス
@@ -500,11 +500,11 @@ public class GameDatabase
     public static readonly string[] Name_Enemies =
     {
         "グリーンスライム",
-        "スケルトン（剣）",
-        "スケルトン（槍）",
-        "スケルトン（斧）",
-        "スケルトン（弓）",
-        "スケルトン（魔）",
+        "スケルトン",
+        "スケルトン",
+        "スケルトン",
+        "スケルトン",
+        "スケルトン",
         "ペル",
         "バーンスライム",
         "エレキスライム",
@@ -774,6 +774,20 @@ public class GameDatabase
         if (Util.RandomCheck(outRate)) return ItemID.FreeHand;
 
         var bossRate = boss ? 2 : 1; // ボスはレアリティ下がる＝レア高いものが出やすい
+
+        // 武器なんでもの場合、持ってないもの優先
+        if (weaponOnly && type == ItemType.None)
+        {
+            var emptyType = new List<ItemType>();
+            if (!GameParameter.otherData.haveItemList.Any(itm => itm.ItemData.iType == ItemType.Sword)) emptyType.Add(ItemType.Sword);
+            if (!GameParameter.otherData.haveItemList.Any(itm => itm.ItemData.iType == ItemType.Sword)) emptyType.Add(ItemType.Spear);
+            if (!GameParameter.otherData.haveItemList.Any(itm => itm.ItemData.iType == ItemType.Sword)) emptyType.Add(ItemType.Axe);
+            if (!GameParameter.otherData.haveItemList.Any(itm => itm.ItemData.iType == ItemType.Sword)) emptyType.Add(ItemType.Arrow);
+            if (!GameParameter.otherData.haveItemList.Any(itm => itm.ItemData.iType == ItemType.Sword)) emptyType.Add(ItemType.Book);
+
+            if (emptyType.Count > 0)
+                type = emptyType[Util.RandomInt(0, emptyType.Count - 1)];
+        }
 
         var koho = new List<ItemID>();
 

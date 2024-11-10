@@ -1122,6 +1122,25 @@ public class GameSceneScript : MainScriptBase
     /// <returns></returns>
     private IEnumerator NextFloorCoroutine()
     {
+        var healed = false;
+        // HP‰ñ•œ
+        foreach (var p in field.GetPlayers())
+        {
+            if (p.param.HP < p.param.MaxHP)
+            {
+                healed = true;
+                p.param.HP += p.param.MaxHP / 10;
+                if (p.param.HP > p.param.MaxHP) p.param.HP = p.param.MaxHP;
+
+                p.UpdateHP();
+            }
+        }
+        if (healed)
+        {
+            ManagerSceneScript.GetInstance().soundMan.PlaySE(se_heal);
+            yield return new WaitForSeconds(0.5f);
+        }
+
         yield return field.NextFloor();
 
         //todo:‚çƒ“ƒLƒ“ƒO“o˜^

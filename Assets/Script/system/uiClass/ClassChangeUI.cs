@@ -11,15 +11,12 @@ public class ClassChangeUI : MonoBehaviour
     #region メンバー
 
     public TMP_Text name_old;
-    public TMP_Text name_nextA;
-    public TMP_Text name_nextB;
-    public TMP_Text name_nextRebirth;
+    public ClassChangeUIDetail det_nextA;
+    public ClassChangeUIDetail det_nextB;
+    public ClassChangeUIDetail det_nextRebirth;
     public GameObject arrow_A;
     public GameObject arrow_B;
     public GameObject arrow_Rebirth;
-    public GameObject window_A;
-    public GameObject window_B;
-    public GameObject window_Rebirth;
 
     #endregion
 
@@ -85,27 +82,27 @@ public class ClassChangeUI : MonoBehaviour
         if (selectClassA == Constant.ClassID.Base)
         {
             // 転生選択
-            window_Rebirth.SetActive(true);
-            window_A.SetActive(false);
-            window_B.SetActive(false);
+            det_nextRebirth.gameObject.SetActive(true);
+            det_nextA.gameObject.SetActive(false);
+            det_nextB.gameObject.SetActive(false);
             arrow_Rebirth.SetActive(true);
             arrow_A.SetActive(false);
             arrow_B.SetActive(false);
 
-            name_nextRebirth.SetText(names[(int)Constant.ClassID.Base]);
+            det_nextA.SetClass(pc.playerID, Constant.ClassID.Base);
         }
         else
         {
             // クラスチェンジ
-            window_Rebirth.SetActive(false);
-            window_A.SetActive(true);
-            window_B.SetActive(true);
+            det_nextRebirth.gameObject.SetActive(false);
+            det_nextA.gameObject.SetActive(true);
+            det_nextB.gameObject.SetActive(true);
             arrow_Rebirth.SetActive(false);
             arrow_A.SetActive(true);
             arrow_B.SetActive(true);
 
-            name_nextA.SetText(names[(int)selectClassA]);
-            name_nextB.SetText(names[(int)selectClassB]);
+            det_nextA.SetClass(pc.playerID, selectClassA);
+            det_nextB.SetClass(pc.playerID, selectClassB);
         }
     }
 

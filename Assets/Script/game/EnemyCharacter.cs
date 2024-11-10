@@ -102,7 +102,7 @@ public class EnemyCharacter : CharacterBase
             if (isBoss)
                 dropID = GameDatabase.CalcRandomItem(param.Lv, true, false);
             else
-                dropID = GameDatabase.CalcRandomItem(param.Lv, false, false, outRate: 98);
+                dropID = GameDatabase.CalcRandomItem(param.Lv, false, false, outRate: 96);
         }
     }
 

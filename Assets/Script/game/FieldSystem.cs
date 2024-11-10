@@ -24,6 +24,13 @@ public class FieldSystem : MonoBehaviour
     private const float ZERO_X = -(COL_COUNT - 1) * CELL_SIZE / 2f;
     private const float ZERO_Y = -(ROW_COUNT - 1) * CELL_SIZE / 2f;
 
+    private const float MOVE_X = (COL_COUNT - 1) * CELL_SIZE;
+
+    /// <summary>BG画像右側のX</summary>
+    private const float BG_RIGHT_X = CELL_SIZE / 2f;
+    /// <summary>BG画像左側のX</summary>
+    private const float BG_LEFT_X = BG_RIGHT_X - MOVE_X;
+
     /// <summary>撤退した時復帰するフロア数</summary>
     private const int RETURN_FLOOR_ESCAPE = 4;
     /// <summary>HP0の時復帰するフロア数</summary>
@@ -39,6 +46,16 @@ public class FieldSystem : MonoBehaviour
     /// <summary>敵ダミー</summary>
     public EnemyCharacter enemy_dummy;
 
+    /// <summary>BG生成親</summary>
+    public Transform bg_parent;
+    /// <summary>BGダミー</summary>
+    public SpriteRenderer bg_dummy;
+
+    /// <summary>通常背景Sprite</summary>
+    public Sprite bg_normal;
+    /// <summary>ボス背景Sprite</summary>
+    public Sprite bg_boss;
+
     /// <summary>縦線ダミー</summary>
     public Transform colLine_dummy;
     /// <summary>枠線親オブジェクト</summary>
@@ -46,8 +63,10 @@ public class FieldSystem : MonoBehaviour
     public Transform Character_parent;
     public Transform Tile_parent;
 
+    /// <summary>ターン終了ボタン</summary>
     public Button btn_TurnEnd;
 
+    /// <summary>フロア表示</summary>
     public TMP_Text floorDisplay;
 
     #endregion
@@ -88,6 +107,11 @@ public class FieldSystem : MonoBehaviour
     /// <summary>ボスフェーズ　0～9まで固定</summary>
     private int bossPhase = 0;
 
+    /// <summary>BG右側</summary>
+    private SpriteRenderer bg_R = null;
+    /// <summary>BG左側</summary>
+    private SpriteRenderer bg_L = null;
+
     #endregion
 
     #region 既定
@@ -101,6 +125,7 @@ public class FieldSystem : MonoBehaviour
         player_dummy.gameObject.SetActive(false);
         enemy_dummy.gameObject.SetActive(false);
         colLine_dummy.gameObject.SetActive(false);
+        bg_dummy.gameObject.SetActive(false);
 
         InitLines();
     }
@@ -556,6 +581,8 @@ public class FieldSystem : MonoBehaviour
 
             CreateRandomEnemy(false);
         }
+
+        InitBG();
     }
 
     /// <summary>
@@ -794,7 +821,6 @@ public class FieldSystem : MonoBehaviour
     public IEnumerator NextFloor()
     {
         const float MOVE_TIME = 1f;
-        const float MOVE_X = (COL_COUNT - 1) * CELL_SIZE;
         // 次のフロアの敵を生成
         Prm_BattleFloor++;
         Prm_BattleTurn = 0;
@@ -802,6 +828,13 @@ public class FieldSystem : MonoBehaviour
 
         // 新しい縦線を生成
         CreateNextLine();
+
+        // 新しいBGを生成
+        var bgX_Next = BG_LEFT_X - MOVE_X;
+        var nextBG = Instantiate(bg_dummy, bg_parent, false);
+        nextBG.transform.localPosition = new Vector3(bgX_Next, 0f);
+        nextBG.sprite = Prm_BattleFloor % 10 == 9 ? bg_boss : bg_normal;
+        nextBG.gameObject.SetActive(true);
 
         // キャラと縦線をCOLCOUNT-1個分動かす
         var addX = new DeltaFloat();
@@ -818,6 +851,10 @@ public class FieldSystem : MonoBehaviour
                 c.transform.localPosition = GetCellPosition(c.GetLocation()) + addV;
             foreach (CharacterBase c in enemies)
                 c.transform.localPosition = GetCellPosition(c.GetLocation()) + addV;
+
+            nextBG.transform.localPosition = new Vector3(bgX_Next + addX.Get(), 0f);
+            bg_R.transform.localPosition = new Vector3(BG_RIGHT_X + addX.Get(), 0f);
+            bg_L.transform.localPosition = new Vector3(BG_LEFT_X + addX.Get(), 0f);
         }
 
         // 前のフロアの敵と縦線を消す
@@ -845,9 +882,32 @@ public class FieldSystem : MonoBehaviour
             c.SetLocation(loc);
         }
 
+        // 前のBGを消して変数つけかえ
+        Destroy(bg_R);
+        bg_R = bg_L;
+        bg_L = nextBG;
+
         yield return ReturnPlayerCoroutine();
 
         yield return new WaitForSeconds(0.5f);
+    }
+
+    /// <summary>
+    /// 現在のフロアのBG表示
+    /// </summary>
+    private void InitBG()
+    {
+        if (bg_R != null) Destroy(bg_R);
+        if (bg_L != null) Destroy(bg_L);
+
+        bg_R = Instantiate(bg_dummy, bg_parent, false);
+        bg_L = Instantiate(bg_dummy, bg_parent, false);
+        bg_R.transform.localPosition = new Vector3(BG_RIGHT_X, 0f);
+        bg_L.transform.localPosition = new Vector3(BG_LEFT_X, 0f);
+        bg_R.sprite = Prm_BattleFloor % 10 == 0 ? bg_boss : bg_normal;
+        bg_L.sprite = Prm_BattleFloor % 10 == 9 ? bg_boss : bg_normal;
+        bg_R.gameObject.SetActive(true);
+        bg_L.gameObject.SetActive(true);
     }
 
     /// <summary>

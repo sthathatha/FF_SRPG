@@ -639,8 +639,8 @@ public class GameSceneScript : MainScriptBase
                         breakChr = chrA as PlayerCharacter;
                         weaponBreak = breakIdx;
                         // âÛÇÍÇΩÇÁç≈å„ÇÃçUåÇÇ…Ç∑ÇÈ
-                        if (atkTurn) param.a_atkCount = 1;
-                        else param.d_atkCount = 1;
+                        if (atkTurn) param.a_atkCount = 0;
+                        else param.d_atkCount = 0;
                     }
                 }
 

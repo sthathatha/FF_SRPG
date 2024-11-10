@@ -144,6 +144,9 @@ public abstract class CharacterBase : MonoBehaviour
             anim.Play("idle");
         else
             anim.Play("move");
+
+        // “G‚Í¶‚¾‚¯¶‰E”½“]
+        anim.GetComponent<SpriteRenderer>().flipX = dir == Constant.Direction.Left;
     }
 
     /// <summary>

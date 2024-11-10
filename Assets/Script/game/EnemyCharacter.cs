@@ -145,7 +145,24 @@ public class EnemyCharacter : CharacterBase
         anim.runtimeAnimatorController = eid switch
         {
             Constant.EnemyID.SlimeGreen => resources.anim_slime_base,
-            _ => resources.anim_slime_base,
+            Constant.EnemyID.SkeletonSword => resources.anim_skeleton_sword,
+            Constant.EnemyID.SkeletonSpear => resources.anim_skeleton_spear,
+            Constant.EnemyID.SkeletonAxe => resources.anim_skeleton_axe,
+            Constant.EnemyID.SkeletonArrow => resources.anim_skeleton_arrow,
+            Constant.EnemyID.SkeletonBook => resources.anim_skeleton_book,
+            Constant.EnemyID.Pel => resources.anim_pell,
+
+            Constant.EnemyID.Angel => resources.anim_b1_angel,
+            Constant.EnemyID.ArchAngel => resources.anim_b2_archangel,
+            Constant.EnemyID.Principality => resources.anim_b3_princip,
+            Constant.EnemyID.Power => resources.anim_b4_power,
+            Constant.EnemyID.Virtue => resources.anim_b5_virtue,
+            Constant.EnemyID.Dominion => resources.anim_b6_dominion,
+            Constant.EnemyID.Throne => resources.anim_b7_throne,
+            Constant.EnemyID.Cherubim => resources.anim_b8_cherubim,
+            Constant.EnemyID.Seraphim => resources.anim_b9_seraphim,
+            Constant.EnemyID.Prime => resources.anim_b10_prime,
+            _ => resources.anim_b8_cherubim,
         };
 
         var other = GameDatabase.Prm_EnemyOther[(int)enemyID];

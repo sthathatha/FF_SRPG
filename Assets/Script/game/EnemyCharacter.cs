@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Constant;
 
 /// <summary>
 /// 敵キャラクター
@@ -151,6 +150,10 @@ public class EnemyCharacter : CharacterBase
             Constant.EnemyID.SkeletonArrow => resources.anim_skeleton_arrow,
             Constant.EnemyID.SkeletonBook => resources.anim_skeleton_book,
             Constant.EnemyID.Pel => resources.anim_pell,
+            Constant.EnemyID.SlimeBurn => resources.anim_slime_base,
+            Constant.EnemyID.SlimeElec => resources.anim_slime_base,
+            Constant.EnemyID.SlimeDeep => resources.anim_slime_base,
+            Constant.EnemyID.SlimeMetal => resources.anim_slime_base,
 
             Constant.EnemyID.Angel => resources.anim_b1_angel,
             Constant.EnemyID.ArchAngel => resources.anim_b2_archangel,

@@ -777,6 +777,7 @@ public class GameParameter
         ret.a_hit = CalcHitRate(a_hit, d_avd);
         ret.a_critical = CalcHitRate(a_crt, d_acrt);
         ret.a_atkCount = CalcAttackCount(a_spd, d_spd);
+        if (defChr.HasSkill(GameDatabase.SkillID.Koob_DenySpeed)) ret.a_atkCount = 1;
 
         if (canCounter)
         {
@@ -785,6 +786,7 @@ public class GameParameter
             ret.d_critical = CalcHitRate(d_crt, a_acrt);
             ret.d_atkCount = CalcAttackCount(d_spd, a_spd);
             if (defChr.HasSkill(GameDatabase.SkillID.You_CounterPlus)) ret.d_atkCount++;
+            if (atkChr.HasSkill(GameDatabase.SkillID.Koob_DenySpeed)) ret.d_atkCount = 1;
         }
         else
         {

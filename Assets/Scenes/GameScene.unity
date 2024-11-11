@@ -3952,6 +3952,7 @@ MonoBehaviour:
   se_levelup: {fileID: 8300000, guid: e9b7612dc51a1824190ac7a0b0b222c8, type: 3}
   se_class_change: {fileID: 8300000, guid: 232d8ffa1f2674141937302a001e8e0e, type: 3}
   se_escape: {fileID: 8300000, guid: ef2726e00c4e6f641bfc61ea59b84761, type: 3}
+  se_equip: {fileID: 8300000, guid: bccb96bd98fccd142b6ca246fa4d5129, type: 3}
 --- !u!1 &1806255715
 GameObject:
   m_ObjectHideFlags: 0

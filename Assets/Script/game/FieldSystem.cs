@@ -34,7 +34,7 @@ public class FieldSystem : MonoBehaviour
     /// <summary>撤退した時復帰するフロア数</summary>
     private const int RETURN_FLOOR_ESCAPE = 4;
     /// <summary>HP0の時復帰するフロア数</summary>
-    private const int RETURN_FLOOR_DEATH = 7;
+    private const int RETURN_FLOOR_DEATH = 5;
 
     #endregion
 

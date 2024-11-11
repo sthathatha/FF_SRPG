@@ -35,6 +35,7 @@ public class GameSceneScript : MainScriptBase
     public AudioClip se_levelup;
     public AudioClip se_class_change;
     public AudioClip se_escape;
+    public AudioClip se_equip;
 
     #endregion
 
@@ -298,14 +299,30 @@ public class GameSceneScript : MainScriptBase
                 callback?.Invoke(1);
                 yield break;
             }
-            else if (command.Result == CommandUI.CommandResult.Escape)
+            //else if (command.Result == CommandUI.CommandResult.Escape)
+            //{
+            //    // 撤退
+            //    var se = manager.soundMan.PlaySELoop(se_escape);
+            //    manager.soundMan.StopLoopSE(se, 1f);
+            //    field.DeleteCharacter(pc, false);
+            //    callback?.Invoke(1);
+            //    yield break;
+            //}
+            else if (command.Result == CommandUI.CommandResult.Equip)
             {
-                // 撤退
-                var se = manager.soundMan.PlaySELoop(se_escape);
-                manager.soundMan.StopLoopSE(se, 1f);
-                field.DeleteCharacter(pc, false);
-                callback?.Invoke(1);
-                yield break;
+                // 装備変更
+                var itemui = manager.itemListUI;
+                yield return itemui.ShowCoroutine(pc, true);
+                // キャンセル
+                if (itemui.Result == ItemListUI.ItemResult.Cancel) continue;
+
+                // 選んだ選択肢
+                var selItem = itemui.Result_SelectData;
+                // 薬と杖はキャンセル扱い
+                if (selItem.iType == ItemType.Item || selItem.iType == ItemType.Rod) continue;
+                // 選んだアイテムを装備してコマンド選択に戻る
+                GameParameter.otherData.SetEquipIndex(pc.playerID, itemui.Result_SelectIndex);
+                manager.soundMan.PlaySE(se_equip);
             }
             else if (command.Result == CommandUI.CommandResult.ClassChange)
             {

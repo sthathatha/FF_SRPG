@@ -405,6 +405,7 @@ public class GameDatabase
     #region 名称データベース
 
     // 他の場所にあるテキスト
+    // 装備変更
     // 行動　待機　撤退
     // 攻撃　命中　必殺
     // 
@@ -546,8 +547,9 @@ public class GameDatabase
         Worra_LongShot,
         Worra_FastMove,
         Worra_Avoid,
-        Koob_World,
         Koob_Zenius,
+        Koob_World,
+        Koob_DenySpeed,
         Koob_Archemy,
         You_StrongAttack,
         You_StealthAttack,
@@ -598,8 +600,9 @@ public class GameDatabase
         new (Constant.PlayerID.Worra, Constant.ClassID.A2, 10, "最大射程+1"),
         new (Constant.PlayerID.Worra, Constant.ClassID.AB, 10, "移動+1"),
         new (Constant.PlayerID.Worra, Constant.ClassID.B2, 10, "回避+30"),
+        new (Constant.PlayerID.Koob, Constant.ClassID.Base, 1, "取得経験値+50％"),
         new (Constant.PlayerID.Koob, Constant.ClassID.A2, 10, "必ず武器相性が有利になる"),
-        new (Constant.PlayerID.Koob, Constant.ClassID.AB, 10, "取得経験値+50％"),
+        new (Constant.PlayerID.Koob, Constant.ClassID.AB, 10, "速さで負けても追撃されない"),
         new (Constant.PlayerID.Koob, Constant.ClassID.B2, 10, "武器を壊した時、稀に同種の武器を生成する"),
         new (Constant.PlayerID.You, Constant.ClassID.A2, 10, "自分から攻撃する時、攻撃+10"),
         new (Constant.PlayerID.You, Constant.ClassID.AB, 10, "自分から攻撃する時、反撃されない"),

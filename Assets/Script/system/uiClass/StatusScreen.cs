@@ -107,7 +107,10 @@ public class StatusScreen : MonoBehaviour
         txt_luk.SetText(chr.param.Luk.ToString());
         txt_def.SetText(chr.param.Def.ToString());
         txt_mdf.SetText(chr.param.Mdf.ToString());
-        txt_move.SetText(chr.param.Move.ToString());
+        if (chr.HasSkill(GameDatabase.SkillID.Worra_FastMove))
+            txt_move.SetText($"{chr.param.Move} + 1");
+        else
+            txt_move.SetText(chr.param.Move.ToString());
         txt_lv.SetText(chr.param.Lv.ToString());
 
         foreach (var s in skills) Destroy(s.gameObject);

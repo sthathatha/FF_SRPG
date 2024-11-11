@@ -20,9 +20,9 @@ public class CommandUI : MonoBehaviour
     {
         Cancel = 0,
         Act,
-        Wait,
+        Equip,
         ClassChange,
-        Escape,
+        Wait,
     }
     public CommandResult Result { get; private set; }
 
@@ -85,9 +85,6 @@ public class CommandUI : MonoBehaviour
             ccEnable = pc.param.Lv >= 10;
 
         ccText.interactable = ccEnable;
-
-        // 最後の一人なら撤退を選択不可
-        escText.interactable = pc.field.GetPlayers().Count > 1;
     }
 
     #endregion
@@ -98,6 +95,15 @@ public class CommandUI : MonoBehaviour
     public void BtnAct()
     {
         Result = CommandResult.Act;
+        showing = false;
+    }
+
+    /// <summary>
+    /// 装備変更ボタン
+    /// </summary>
+    public void BtnEquip()
+    {
+        Result = CommandResult.Equip;
         showing = false;
     }
 
@@ -116,15 +122,6 @@ public class CommandUI : MonoBehaviour
     public void BtnCC()
     {
         Result = CommandResult.ClassChange;
-        showing = false;
-    }
-
-    /// <summary>
-    /// 撤退
-    /// </summary>
-    public void BtnEscape()
-    {
-        Result = CommandResult.Escape;
         showing = false;
     }
 

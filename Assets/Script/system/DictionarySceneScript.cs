@@ -14,6 +14,7 @@ public class DictionarySceneScript : MainScriptBase
     public TMP_Text txt_Hit;
     public TMP_Text txt_Crt;
     public TMP_Text txt_Range;
+    public TMP_Text txt_UseCnt;
 
     public ItemDictionaryUI dicUI;
 
@@ -41,6 +42,7 @@ public class DictionarySceneScript : MainScriptBase
         txt_Crt.SetText("--");
         txt_Atk.SetText("--");
         txt_Range.SetText("--");
+        txt_UseCnt.SetText("--");
     }
 
     /// <summary>
@@ -52,6 +54,7 @@ public class DictionarySceneScript : MainScriptBase
         var prm = GameDatabase.ItemDataList[(int)itemID];
         txt_Name.SetText(prm.name);
         txt_Atk.SetText(prm.atk.ToString());
+        txt_UseCnt.SetText(prm.maxUse.ToString());
         if (prm.iType == GameDatabase.ItemType.Item || prm.iType == GameDatabase.ItemType.Rod)
         {
             txt_Hit.SetText("--");

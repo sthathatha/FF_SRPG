@@ -99,7 +99,11 @@ public class EnemyCharacter : CharacterBase
         if (drp != GameDatabase.ItemID.FreeHand) { dropID = drp; }
         else
         {
-            if (isBoss)
+            // レア100以上の武器を装備していたらドロップ
+            var wpnData = GameDatabase.ItemDataList[(int)weaponID];
+            if (wpnData.rarelity > 100)
+                dropID = weaponID;
+            else if (isBoss)
                 dropID = GameDatabase.CalcRandomItem(param.Lv, true, false);
             else
                 dropID = GameDatabase.CalcRandomItem(param.Lv, false, false, outRate: 96);

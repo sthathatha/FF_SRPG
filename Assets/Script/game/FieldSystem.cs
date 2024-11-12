@@ -599,8 +599,14 @@ public class FieldSystem : MonoBehaviour
     {
         var addX = next ? -COL_COUNT + 1 : 0;
 
-        // 2フロアごとに敵レベル１アップ
+        // 100までは2フロアごとに敵レベル１アップ
         var lv = Prm_BattleFloor / 2 + 1;
+        if (Prm_BattleFloor > 100)
+        {
+            // 100以降はさらにnフロアごとに＋１
+            lv += (Prm_BattleFloor - 101) / 4;
+
+        }
         var randMax = Mathf.CeilToInt(lv / 15);
 
         // ドロップアイテムを確実に持っているやつ
@@ -929,7 +935,12 @@ public class FieldSystem : MonoBehaviour
                     GetCellCharacter(new Vector2Int(COL_COUNT, r)) == null)
                     return new Vector2Int(COL_COUNT - 1, r);
             }
-            return new Vector2Int(COL_COUNT - 2, ROW_COUNT - 1);
+            for (var r = ROW_COUNT - 1; r >= 0; --r)
+            {
+                if (GetCellCharacter(new Vector2Int(COL_COUNT - 2, r)) == null)
+                    return new Vector2Int(COL_COUNT - 1, r);
+            }
+            return new Vector2Int(COL_COUNT - 3, ROW_COUNT - 1);
         });
 
         bool created = false;
@@ -942,7 +953,7 @@ public class FieldSystem : MonoBehaviour
                 {
                     // 復帰
                     var l = getEmptyCell();
-                    var l2 = l + new Vector2Int(1, 0);
+                    var l2 = new Vector2Int(COL_COUNT, l.y);
                     var p = CreatePlayer(id, l2);
                     StartCoroutine(returnCharacterAnim(p, l));
                     created = true;
@@ -974,7 +985,10 @@ public class FieldSystem : MonoBehaviour
     {
         var hist = new MoveHistory();
         hist.history.Add(pc.GetLocation());
-        hist.history.Add(l);
+        for (var x = pc.GetLocation().x - 1; x >= l.x; --x)
+        {
+            hist.history.Add(new Vector2Int(x, pc.GetLocation().y));
+        }
 
         yield return pc.Walk(hist);
         pc.PlayAnim(Constant.Direction.None);

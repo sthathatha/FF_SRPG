@@ -445,11 +445,17 @@ public class GameSceneScript : MainScriptBase
     /// <param name="skillContinue">スキルによって行動終了しない</param>
     private void PTurnSetActEnd(PlayerCharacter pc, bool skillContinue = false)
     {
+        pc.PlayAnim(Constant.Direction.None);
+
         // 敵がもう居なかったら終了しない
-        if (field.GetEnemies().Count == 0 || skillContinue)
+        if (field.GetEnemies().Count == 0)
         {
-            pc.PlayAnim(Constant.Direction.None);
             field.ResetAllActable();
+            return;
+        }
+        else if (skillContinue)
+        {
+            // スキルにより自分は終了しない
             return;
         }
 
@@ -922,6 +928,7 @@ public class GameSceneScript : MainScriptBase
         yield return cellUI.ShowExpCoroutine(pc.GetLocation(), exp);
 
         // 加算
+        var lvup = false;
         pc.param.Exp += exp;
         if (pc.param.Exp >= 100)
         {
@@ -948,11 +955,13 @@ public class GameSceneScript : MainScriptBase
             pc.param.Mdf += upParam.mdf;
             pc.UpdateHP(true);
 
-            pc.CheckGetSkill();
+            lvup = true;
         }
 
         // セーブデータにも反映
         GameParameter.Prm_SetFieldParam(pc.playerID, pc.param);
+
+        if (lvup) pc.CheckGetSkill();
     }
 
     #endregion
@@ -1139,23 +1148,26 @@ public class GameSceneScript : MainScriptBase
     /// <returns></returns>
     private IEnumerator NextFloorCoroutine()
     {
-        var healed = false;
-        // HP回復
-        foreach (var p in field.GetPlayers())
+        if (field.GetEnemies().Count == 0)
         {
-            if (p.param.HP < p.param.MaxHP)
+            // 全滅させていたらHP回復
+            var healed = false;
+            foreach (var p in field.GetPlayers())
             {
-                healed = true;
-                p.param.HP += p.param.MaxHP / 10;
-                if (p.param.HP > p.param.MaxHP) p.param.HP = p.param.MaxHP;
+                if (p.param.HP < p.param.MaxHP)
+                {
+                    healed = true;
+                    p.param.HP += p.param.MaxHP / 10;
+                    if (p.param.HP > p.param.MaxHP) p.param.HP = p.param.MaxHP;
 
-                p.UpdateHP();
+                    p.UpdateHP();
+                }
             }
-        }
-        if (healed)
-        {
-            ManagerSceneScript.GetInstance().soundMan.PlaySE(se_heal);
-            yield return new WaitForSeconds(0.5f);
+            if (healed)
+            {
+                ManagerSceneScript.GetInstance().soundMan.PlaySE(se_heal);
+                yield return new WaitForSeconds(0.5f);
+            }
         }
 
         yield return field.NextFloor();

@@ -238,6 +238,11 @@ public class StatusUpUI : MonoBehaviour
             valTxt.SetText((baseNum + upNum).ToString());
         });
 
+        if (upParam.maxHp != 0)
+        {
+            ShowAct(hp_up, hp_value, saveParam.MaxHP, upParam.maxHp);
+            yield return new WaitForSeconds(UP_WAITTIME);
+        }
         if (upParam.atk != 0)
         {
             ShowAct(atk_up, atk_value, saveParam.Atk, upParam.atk);

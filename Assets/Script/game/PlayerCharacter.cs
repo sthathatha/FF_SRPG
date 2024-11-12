@@ -195,6 +195,9 @@ public class PlayerCharacter : CharacterBase
     /// </summary>
     public override void CheckGetSkill()
     {
+        // 現在値をセーブパラメータに保存
+        GameParameter.Prm_SetFieldParam(playerID, param);
+
         base.CheckGetSkill();
 
         var prm = GetSaveParameter();
@@ -218,6 +221,9 @@ public class PlayerCharacter : CharacterBase
     /// </summary>
     public override void CheckDeleteSkill()
     {
+        // 現在値をセーブパラメータに保存
+        GameParameter.Prm_SetFieldParam(playerID, param);
+
         base.CheckDeleteSkill();
 
         var prm = GetSaveParameter();

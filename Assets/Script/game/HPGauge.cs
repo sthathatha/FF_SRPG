@@ -9,7 +9,7 @@ public class HPGauge : MonoBehaviour
 {
     #region ’è”
 
-    private const float G_MAX = 60f;
+    private const float G_MAX = 62f;
     private const float G_HEIGHT = 2f;
 
     #endregion

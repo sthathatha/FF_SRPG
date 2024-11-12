@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
 
 /// <summary>
@@ -556,6 +557,7 @@ public class GameParameter
 
             // ƒVƒXƒeƒ€ƒf[ƒ^‚Ì“üèƒtƒ‰ƒO
             Global.GetSaveData().SetItemGetFlag(itemID);
+            Global.GetSaveData().SaveSystemData();
         }
 
         /// <summary>
@@ -845,19 +847,26 @@ public class GameParameter
     /// <returns></returns>
     private static int CalcAttackCount(int atkSpd, int defSpd)
     {
-        // ’x‚¯‚ê‚Î‚P‰ñ
-        if (atkSpd < defSpd) return 1;
-
-        // 20‚Ü‚Å‚Í{‚S‚Å‚Q‰ñ
+        // 20‚Ü‚Å‚Í‚S·‚Å‚Q‰ñiFE®j
         if (atkSpd <= 20) return atkSpd - defSpd >= 4 ? 2 : 1;
 
-        // ˆÈ~‚Í–hŒä‘¤‚Ì‰½“ƒvƒ‰ƒX‚©‚Å”»’è
-        var atkRate = atkSpd * 100 / defSpd - 100;
+        // ‚Q‰ñUŒ‚‚É•K—v‚È’l‚—
+        var doubleSpd = Mathf.CeilToInt(atkSpd * 0.2f);
 
-        // 20%‚ ‚ê‚Î‚Q‰ñAˆÈ~120“A220%‚Æ100%‚¸‚Â’Ç‰Á
-        if (atkRate < 20) return 1;
-        atkRate -= 20;
-        return 2 + atkRate / 100;
+        // ’x‚¯‚ê‚Î‚P‰ñ
+        if (atkSpd < defSpd + doubleSpd) return 1;
+
+        // ·‚ª‚—‚ ‚ê‚Î‚Ü‚¸‚Í‚Q‰ñ
+        var cnt = 2;
+        // —]•ª‚ÈƒXƒs[ƒh
+        var spdSub = atkSpd - defSpd - doubleSpd;
+        // —]•ª‚ª–hŒä‘¤‚Ì‰½”{‚©
+        var atkRate = (float)spdSub / defSpd;
+        // ‚±‚ê‚Ì‚˜æ‚ğ®”‚Å‰ÁZ
+        cnt += Mathf.FloorToInt(Mathf.Pow(atkRate, 0.85f));
+        return cnt;
+
+        // –hŒä‘¤20‚Ìê‡ 25F‚Q‰ñ@50F‚R‰ñ@83F‚S‰ñ@117F‚T‰ñ@154F‚U‰ñ
     }
 
     /// <summary>

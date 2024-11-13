@@ -1010,6 +1010,7 @@ public class GameSceneScript : MainScriptBase
             pc.param.Def += downParam.def;
             pc.param.Mdf += downParam.mdf;
             pc.param.Move += downParam.move;
+            if (pc.param.HP > pc.param.MaxHP) pc.param.HP = pc.param.MaxHP;
             saveParam.ClassID = Constant.ClassID.Base;
 
             pc.CheckDeleteSkill();
@@ -1050,15 +1051,16 @@ public class GameSceneScript : MainScriptBase
         var baseParam = GameDatabase.Prm_PlayerInit[(int)pc.playerID];
 
         // écÇÈäÑçá
-        var savePow = Mathf.Pow(nowParam.ReviveCount, 1.2f);
-        var saveRate = (savePow + 2f) / (savePow + 3f);
+        var savePow = Mathf.Pow(nowParam.ReviveCount, 1.5f);
+        var saveRate = (savePow + 4f) / (savePow + 5f);
         var calcAct = new Func<int, int, int>((nowNum, baseNum) =>
         {
             var diff = nowNum - baseNum;
-            var save = Mathf.FloorToInt(diff * saveRate);
+            var save = Mathf.CeilToInt(diff * saveRate);
             return save - diff;
         });
-        downParam.maxHp = calcAct(nowParam.MaxHP, baseParam.maxHp);
+        //downParam.maxHp = calcAct(nowParam.MaxHP, baseParam.maxHp);
+        downParam.maxHp = 0;
         downParam.atk = calcAct(nowParam.Atk, baseParam.atk);
         downParam.mag = calcAct(nowParam.Mag, baseParam.mag);
         downParam.tec = calcAct(nowParam.Tec, baseParam.tec);
@@ -1093,8 +1095,6 @@ public class GameSceneScript : MainScriptBase
     /// <returns></returns>
     private IEnumerator GameoverCoroutine()
     {
-        //todo:ÉâÉìÉLÉìÉOìoò^
-
         // UIï\é¶
         gameover_shown = false;
         var alpha = new DeltaFloat();
@@ -1171,8 +1171,6 @@ public class GameSceneScript : MainScriptBase
         }
 
         yield return field.NextFloor();
-
-        //todo:ÇÁÉìÉLÉìÉOìoò^
     }
 
     #endregion

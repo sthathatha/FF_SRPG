@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using unityroom.Api;
 
 /// <summary>
 /// フィールド管理
@@ -761,6 +762,12 @@ public class FieldSystem : MonoBehaviour
             {
                 // ボスを倒したらフェーズ進む
                 bossPhase++;
+
+                if (Prm_EnableRanking)
+                {
+                    // ランキング登録
+                    UnityroomApiClient.Instance.SendScore(1, (float)bossPhase, ScoreboardWriteMode.HighScoreDesc);
+                }
             }
 
             enemies.Remove(chr as EnemyCharacter);

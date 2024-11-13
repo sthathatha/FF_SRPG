@@ -89,7 +89,7 @@ public class ClassChangeUI : MonoBehaviour
             arrow_A.SetActive(false);
             arrow_B.SetActive(false);
 
-            det_nextA.SetClass(pc.playerID, Constant.ClassID.Base);
+            det_nextRebirth.SetClass(pc.playerID, Constant.ClassID.Base);
         }
         else
         {

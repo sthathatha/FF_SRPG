@@ -293,6 +293,9 @@ public class FieldSystem : MonoBehaviour
     /// <param name="ev"></param>
     public void EventClick(BaseEventData ev)
     {
+        // 入力待ち中以外は処理なし
+        if (!waitingInput) return;
+
         // 長押しした後はクリック処理しない
         if (longClicked) return;
 

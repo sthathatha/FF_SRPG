@@ -1012,6 +1012,7 @@ public class GameSceneScript : MainScriptBase
             pc.param.Move += downParam.move;
             if (pc.param.HP > pc.param.MaxHP) pc.param.HP = pc.param.MaxHP;
             saveParam.ClassID = Constant.ClassID.Base;
+            saveParam.ReviveCount += 1;
 
             pc.CheckDeleteSkill();
         }

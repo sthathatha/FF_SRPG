@@ -571,7 +571,13 @@ public class GameSceneScript : MainScriptBase
         PlayerCharacter expTmp_chr = (atkChr.IsPlayer() ? atkChr : defChr) as PlayerCharacter;
         var expTmp_defeat = false;
         var expTmp_dmg = 0;
-        var expTmp_enemyLv = (atkChr.IsPlayer() ? defChr : atkChr).param.Lv;
+        var expEnemy = (atkChr.IsPlayer() ? defChr : atkChr) as EnemyCharacter;
+        var expTmp_enemyLv = expEnemy.param.Lv;
+        // 天使系・メタルスライムは経験値増加
+        if (Prm_EnemyOther[(int)expEnemy.enemyID].rarelity > 40)
+        {
+            expTmp_enemyLv += Prm_EnemyOther[(int)expEnemy.enemyID].rarelity / 20;
+        }
 
         // アニメーション設定
         atkChr.PlayAnim(Util.GetDirectionFromVec(aDist));

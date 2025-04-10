@@ -626,10 +626,14 @@ public class FieldSystem : MonoBehaviour
 
         // 4～6体の下級敵を生成
         var weakCnt = Util.RandomInt(4, 6);
+        var angelCount = 1; // 天使系はザコ内に1体まで
         for (var i = 0; i < weakCnt; i++)
         {
             // 雑魚敵IDを選択
-            var eid = GameDatabase.CalcRandomEnemy(Prm_BattleFloor, false);
+            var eid = GameDatabase.CalcRandomEnemy(Prm_BattleFloor, false, angelCount > 0);
+
+            // 天使が出たらカウント減らす
+            if (GameDatabase.IsAngelEnemy(eid)) angelCount--;
 
             var e = Instantiate(enemy_dummy, Character_parent, false);
             e.gameObject.SetActive(true);

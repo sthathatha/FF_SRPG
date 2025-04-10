@@ -362,15 +362,15 @@ public class GameDatabase
         new(ItemType.None, 21, new Color(0, 0, 0.8f)),        // ディープスライム
         new(ItemType.None, 41, new Color(0.7f, 0.7f, 0.7f)),  // メタルスライム
         new(ItemType.Arrow, 101),       // エンジェルス
-        new(ItemType.Sword, 104),       // アークエンジェルス
-        new(ItemType.Spear, 107),       // プリンシパリティーズ
-        new(ItemType.Axe, 110),         // パワーズ
-        new(ItemType.Arrow, 113),       // ヴァーチャーズ
-        new(ItemType.Spear, 116),       // ドミニオンズ
-        new(ItemType.Axe, 119),         // トロウンズ
-        new(ItemType.Book, 121),        // ケルビム
-        new(ItemType.Sword, 124),       // セラフィム
-        new(ItemType.Book, 127),        // 『尊きもの』
+        new(ItemType.Sword, 111),       // アークエンジェルス
+        new(ItemType.Spear, 121),       // プリンシパリティーズ
+        new(ItemType.Axe, 151),         // パワーズ
+        new(ItemType.Arrow, 161),       // ヴァーチャーズ
+        new(ItemType.Spear, 171),       // ドミニオンズ
+        new(ItemType.Axe, 201),         // トロウンズ
+        new(ItemType.Book, 211),        // ケルビム
+        new(ItemType.Sword, 221),       // セラフィム
+        new(ItemType.Book, 251),        // 『尊きもの』
     };
 
     /// <summary>
@@ -378,8 +378,9 @@ public class GameDatabase
     /// </summary>
     /// <param name="floor"></param>
     /// <param name="isBoss"></param>
+    /// <param name="enableAngel">天使系が可能か</param>
     /// <returns></returns>
-    public static Constant.EnemyID CalcRandomEnemy(int floor, bool isBoss)
+    public static Constant.EnemyID CalcRandomEnemy(int floor, bool isBoss, bool enableAngel = true)
     {
         var koho = new List<Constant.EnemyID>();
         for (var i = 0; i < (int)Constant.EnemyID.ENEMY_COUNT; ++i)
@@ -389,8 +390,17 @@ public class GameDatabase
 
             // rarelityフロアまでは出現しない
             if (data.rarelity > floor) continue;
-            // ボスは100以上
-            if (isBoss && data.rarelity <= 100) continue;
+
+            // ボスは天使系のみ
+            if (isBoss)
+            {
+                if (!IsAngelEnemy((Constant.EnemyID)i)) continue;
+            }
+            else if (!enableAngel)
+            {
+                // 天使系を拒否する場合は天使系以外
+                if (IsAngelEnemy((Constant.EnemyID)i)) continue;
+            }
 
             koho.Add((Constant.EnemyID)i);
         }
@@ -401,6 +411,20 @@ public class GameDatabase
         var selIdx = SelectRateIndex(kohoRarelity);
 
         return koho[selIdx];
+    }
+
+    /// <summary>
+    /// 天使系かどうか
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public static bool IsAngelEnemy(Constant.EnemyID id)
+    {
+        return id switch
+        {
+            >= Constant.EnemyID.Angel => true,
+            _ => false,
+        };
     }
 
     #endregion

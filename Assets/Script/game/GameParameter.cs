@@ -698,7 +698,7 @@ public class GameParameter
             a_dmgPlus += 10;
             a_defPlus += 10;
         }
-        var defChrRound = defChr.field.GetRangeCharacters(atkLoc, 1, 2);
+        var defChrRound = defChr.field.GetRangeCharacters(defChr.GetLocation(), 1, 2);
         if (defChr.HasSkill(GameDatabase.SkillID.Drows_Critical)) d_crtPlus += 30;
         if (defChr.HasSkill(GameDatabase.SkillID.Worra_Avoid)) d_avdPlus += 30;
         if (defChrRound.Any(dc => dc.IsPlayer() == defChr.IsPlayer() && dc.HasSkill(GameDatabase.SkillID.Exa_Guard)))
